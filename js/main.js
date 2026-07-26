@@ -3,15 +3,12 @@
 
 const root = document.documentElement;
 const THEME_KEY = 'leslie-theme-clean-v16';
-const RAIN_KEY = 'leslie-rain-spatial-v1';
 const isBrowserAudit = new URLSearchParams(window.location.search).has('browser-audit');
 
 const qs = (selector, scope = document) => scope.querySelector(selector);
 const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
-const rainLayer = qs('#rain-layer');
 const themeToggle = qs('#theme-toggle');
-const rainToggle = qs('#rain-toggle');
 const navToggle = qs('#nav-toggle');
 const navMenu = qs('#nav-menu');
 const uiStatus = qs('#ui-status');
@@ -100,7 +97,6 @@ let caseStudyReturnFocus = null;
 let lightboxReturnFocus = null;
 let projectReturnFocus = null;
 let scrollTicking = false;
-let resizeTimer = null;
 let activeNavKey = null;
 let motionEnhanced = false;
 
@@ -396,11 +392,8 @@ function announce(message) {
 function updateToggleStates() {
   const theme = root.getAttribute('data-theme') || 'dark';
   const lightThemeActive = theme === 'light';
-  const rainActive = rainLayer?.style.display !== 'none';
   themeToggle?.setAttribute('aria-pressed', String(lightThemeActive));
   themeToggle?.setAttribute('aria-label', lightThemeActive ? 'Use dark theme' : 'Use light theme');
-  rainToggle?.setAttribute('aria-pressed', String(rainActive));
-  rainToggle?.setAttribute('aria-label', rainActive ? 'Turn off rain effect' : 'Turn on rain effect');
 }
 
 function setTheme(theme, { announceChange = true } = {}) {
@@ -415,35 +408,6 @@ function setTheme(theme, { announceChange = true } = {}) {
   updateToggleStates();
   if (announceChange) {
     announce(theme === 'light' ? 'Light theme enabled' : 'Dark theme enabled');
-  }
-}
-
-function createRain(count = window.innerWidth < 768 ? 36 : 72) {
-  if (!rainLayer) return;
-  rainLayer.innerHTML = '';
-  if (reducedMotionQuery.matches || rainLayer.style.display === 'none') return;
-
-  for (let index = 0; index < count; index += 1) {
-    const drop = document.createElement('span');
-    drop.className = 'rain-drop';
-    drop.style.left = `${Math.random() * 100}%`;
-    drop.style.height = `${12 + Math.random() * 22}px`;
-    drop.style.opacity = `${0.12 + Math.random() * 0.35}`;
-    drop.style.animationDuration = `${0.9 + Math.random() * 1.4}s`;
-    drop.style.animationDelay = `${Math.random() * 1.2}s`;
-    rainLayer.appendChild(drop);
-  }
-}
-
-function setRain(active, { announceChange = true } = {}) {
-  if (!rainLayer) return;
-  const shouldRun = active && !reducedMotionQuery.matches;
-  rainLayer.style.display = shouldRun ? 'block' : 'none';
-  if (shouldRun && !rainLayer.childElementCount) createRain();
-  safeStorage.set(RAIN_KEY, shouldRun ? 'on' : 'off');
-  updateToggleStates();
-  if (announceChange) {
-    announce(shouldRun ? 'Rain effect on' : 'Rain effect off');
   }
 }
 
@@ -1188,10 +1152,8 @@ function requestScrollUpdate() {
 
 function init() {
   const storedTheme = safeStorage.get(THEME_KEY, 'dark');
-  const storedRain = safeStorage.get(RAIN_KEY, 'off');
 
   setTheme(storedTheme, { announceChange: false });
-  setRain(storedRain === 'on', { announceChange: false });
   showHeroSlide(0);
   motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
   if (!motionEnhanced) setupReveal();
@@ -1208,10 +1170,6 @@ function init() {
 
   themeToggle?.addEventListener('click', () => {
     setTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
-  });
-
-  rainToggle?.addEventListener('click', () => {
-    setRain(rainLayer?.style.display === 'none');
   });
 
   document.addEventListener('keydown', (event) => {
@@ -1255,7 +1213,6 @@ function init() {
     if (event.matches) {
       stopHeroSlideshow();
       setMarqueePaused(true, { announceChange: false });
-      setRain(false, { announceChange: false });
     } else {
       motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
       setMarqueePaused(false, { announceChange: false });
@@ -1283,8 +1240,6 @@ window.addEventListener('resize', () => {
     navToggle?.setAttribute('aria-label', 'Open navigation');
   }
 
-  window.clearTimeout(resizeTimer);
-  resizeTimer = window.setTimeout(createRain, 140);
   window.PortfolioMotion?.refresh?.();
   requestScrollUpdate();
 }, { passive: true });

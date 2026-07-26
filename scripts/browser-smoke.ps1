@@ -297,6 +297,8 @@ try {
     blankRelIssues,
     localSheetRules: [...document.styleSheets].filter(sheet => sheet.href && sheet.href.includes('/css/style.css')).map(sheet => sheet.cssRules.length),
     initialCaseHidden: document.querySelector('#real-work-detail').hidden,
+    footerArtCount:document.querySelectorAll('.footer-art-image').length,
+    themeControlCount:document.querySelectorAll('.floating-tools .tool-btn').length,
     marqueeGroups: [...document.querySelectorAll('.marquee-group')].map(group => group.getBoundingClientRect().width),
     marqueeGap: Math.abs(document.querySelectorAll('.marquee-group')[1].getBoundingClientRect().left - document.querySelectorAll('.marquee-group')[0].getBoundingClientRect().right),
     navHrefs: [...document.querySelectorAll('#nav-menu a')].map(link => link.getAttribute('href'))
@@ -311,6 +313,7 @@ try {
   Assert-Audit ($structure.blankRelIssues -eq 0) 'Rendered target=_blank links are missing rel protections.'
   Assert-Audit (@($structure.localSheetRules).Count -eq 1 -and $structure.localSheetRules[0] -gt 0) 'The local stylesheet did not parse into CSS rules.'
   Assert-Audit ([bool]$structure.initialCaseHidden) 'Case-study detail is visible before a project is selected.'
+  Assert-Audit ($structure.footerArtCount -eq 2 -and $structure.themeControlCount -eq 1) 'Footer art or the single theme control is incorrect.'
   Assert-Audit ([math]::Abs($structure.marqueeGroups[0] - $structure.marqueeGroups[1]) -lt 1) 'Ticker duplicate groups have different widths.'
   Assert-Audit ($structure.marqueeGap -lt 1) "Ticker has a visible inter-group gap of $($structure.marqueeGap) px."
   Assert-Audit (($structure.navHrefs -join ',') -eq '#workspace,#work,#process,#experience,#contact') "Navigation href order or targets are incorrect: $($structure.navHrefs -join ',')."
@@ -318,20 +321,15 @@ try {
   $toggles = Invoke-PageScript -Expression @'
 (() => {
   const theme = document.querySelector('#theme-toggle');
-  const rain = document.querySelector('#rain-toggle');
   const marquee = document.querySelector('#marquee-toggle');
   const initialTheme = document.documentElement.dataset.theme;
   theme.click();
   const themeChanged = document.documentElement.dataset.theme !== initialTheme && theme.getAttribute('aria-pressed') === 'true';
-  const initialRain = rain.getAttribute('aria-pressed');
-  rain.click();
-  const rainChanged = rain.getAttribute('aria-pressed') !== initialRain;
   marquee.click();
   const marqueePaused = marquee.getAttribute('aria-pressed') === 'true' && document.querySelector('.marquee-track').classList.contains('is-paused');
   marquee.click();
   return {
     themeChanged,
-    rainChanged,
     marqueePaused,
     cardObjectFit:[...document.querySelectorAll('.real-work-thumb img')].map(image => getComputedStyle(image).objectFit),
     featuredObjectFit:getComputedStyle(document.querySelector('#real-work-featured-image')).objectFit,
@@ -340,7 +338,7 @@ try {
   };
 })()
 '@
-  Assert-Audit ($toggles.themeChanged -and $toggles.rainChanged -and $toggles.marqueePaused) 'Theme, rain, or scrolling-ticker controls did not update their accessible state.'
+  Assert-Audit ($toggles.themeChanged -and $toggles.marqueePaused) 'Theme or scrolling-ticker controls did not update their accessible state.'
   Assert-Audit (@($toggles.cardObjectFit | Where-Object { $_ -ne 'contain' }).Count -eq 0 -and $toggles.featuredObjectFit -eq 'contain') 'One or more project images use a cropping object-fit value.'
   Assert-Audit (-not [string]::IsNullOrWhiteSpace($toggles.contactLabel) -and $toggles.contactRequired) 'Contact textarea label or required state is missing.'
   $auditSummary.Add('Desktop structure and persistent controls completed.')
@@ -367,6 +365,11 @@ try {
     noValidate:form.noValidate,
     autocomplete:[name.autocomplete, email.autocomplete],
     describedBy:[name, email, message].map(field => field.getAttribute('aria-describedby')),
+    selectStyles:(() => {
+      const select = document.querySelector('#contact-project-type');
+      const option = select.options[0];
+      return {color:getComputedStyle(select).color, optionColor:getComputedStyle(option).color, optionBackground:getComputedStyle(option).backgroundColor};
+    })(),
     submitHeight:form.querySelector('button[type="submit"]').getBoundingClientRect().height,
     disclosure:document.querySelector('#contact-instructions').textContent.trim()
   };
@@ -376,6 +379,7 @@ try {
   Assert-Audit (@($contactForm.blank.errors | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -eq 0) 'Contact form did not provide a visible error for every required field.'
   Assert-Audit ($contactForm.valid -and $contactForm.noValidate -and ($contactForm.autocomplete -join ',') -eq 'name,email') 'Contact form validity, custom-validation, or autocomplete metadata is incorrect.'
   Assert-Audit (@($contactForm.describedBy | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -eq 0) 'A contact field is not associated with instructions or an error message.'
+  Assert-Audit ($contactForm.selectStyles.optionColor -ne $contactForm.selectStyles.optionBackground -and $contactForm.selectStyles.optionColor -eq 'rgb(20, 25, 35)') 'Contact dropdown options do not use a visible light-theme text colour.'
   Assert-Audit ($contactForm.submitHeight -ge 44 -and $contactForm.disclosure -match 'email draft') 'Contact action is too small or its truthful mail-draft disclosure is missing.'
   $auditSummary.Add('Contact-form validation completed.')
 
@@ -614,7 +618,7 @@ try {
   [void](Invoke-PageScript -Expression "document.querySelector('#real-work-detail').scrollIntoView({block:'start', behavior:'instant'}); true")
   Start-Sleep -Milliseconds 350
   $mobileTargets = Invoke-PageScript -Expression @'
-(() => [...document.querySelectorAll('#nav-toggle, #theme-toggle, #rain-toggle, #real-work-detail-close, #real-work-prev, #real-work-next')]
+(() => [...document.querySelectorAll('#nav-toggle, #theme-toggle, #real-work-detail-close, #real-work-prev, #real-work-next')]
   .filter(element => getComputedStyle(element).display !== 'none')
   .map(element => ({name:element.id, width:Math.round(element.getBoundingClientRect().width), height:Math.round(element.getBoundingClientRect().height)})))()
 '@
@@ -678,8 +682,8 @@ try {
 (() => ({
   matches:matchMedia('(prefers-reduced-motion: reduce)').matches,
   heroStickyPosition:getComputedStyle(document.querySelector('.hero-sticky')).position,
-  orbitDisplay:getComputedStyle(document.querySelector('.hero-orbit-card')).display,
-  rainDisplay:getComputedStyle(document.querySelector('.rain-layer')).display,
+  footerArtAnimation:getComputedStyle(document.querySelector('.footer-art-image--clarity')).animationName,
+  alternateFooterArtDisplay:getComputedStyle(document.querySelector('.footer-art-image--direction')).display,
   marqueeAnimation:getComputedStyle(document.querySelector('.marquee-track')).animationName,
   duplicateTickerDisplay:getComputedStyle(document.querySelector('.marquee-group[aria-hidden="true"]')).display,
   hiddenReveals:[...document.querySelectorAll('.reveal')].filter(element => Number(getComputedStyle(element).opacity) < .99).length,
@@ -687,7 +691,7 @@ try {
 }))()
 '@
   Assert-Audit ($reducedMotion.matches -and $reducedMotion.heroStickyPosition -eq 'relative') 'Reduced-motion preference did not disable the sticky cinematic hero.'
-  Assert-Audit ($reducedMotion.orbitDisplay -eq 'none' -and $reducedMotion.rainDisplay -eq 'none' -and $reducedMotion.marqueeAnimation -eq 'none' -and $reducedMotion.duplicateTickerDisplay -eq 'none') 'Reduced-motion preference left decorative or looping motion active.'
+  Assert-Audit ($reducedMotion.footerArtAnimation -eq 'none' -and $reducedMotion.alternateFooterArtDisplay -eq 'none' -and $reducedMotion.marqueeAnimation -eq 'none' -and $reducedMotion.duplicateTickerDisplay -eq 'none') 'Reduced-motion preference left decorative or looping motion active.'
   Assert-Audit ($reducedMotion.hiddenReveals -eq 0 -and @($reducedMotion.errors).Count -eq 0) 'Reduced-motion mode hides content or emitted a runtime error.'
   [void](Invoke-Cdp -Method 'Emulation.setEmulatedMedia' -Params @{ features = @(@{ name = 'prefers-reduced-motion'; value = 'no-preference' }) })
 

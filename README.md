@@ -26,7 +26,7 @@ CSS transforms provide the spatial device and card treatment. A WebGL dependency
 - Direct, touch-friendly live-project links on mobile and tablet
 - Process and experience sections built from the portfolio's existing claims
 - Honest contact form that validates locally and opens a prefilled draft in the visitor's email application; the site does not send or store submissions
-- Dark/light theme, optional rain, and a user-controlled ticker
+- Dark/light theme and a user-controlled ticker
 
 ## Featured work
 
@@ -44,7 +44,7 @@ Live destinations:
 
 The site includes semantic landmarks, logical headings, a skip link, visible focus, descriptive alternatives, protected external links, labelled form controls, associated validation errors, dialog and focus-return behavior, Escape-key support, and at least 44 px primary touch controls. Active navigation follows native scroll position; the heavier device and hero calculations are requestAnimationFrame-throttled.
 
-`prefers-reduced-motion: reduce` removes the sticky cinematic sequence, orbiting elements, rain, looping ticker, transforms, and reveal delays. The ticker also has a persistent pause control for visitors who do not use the operating-system preference.
+`prefers-reduced-motion: reduce` removes the sticky cinematic sequence, footer crossfade, looping ticker, transforms, and reveal delays. The ticker also has a persistent pause control for visitors who do not use the operating-system preference.
 
 ## Local usage
 

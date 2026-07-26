@@ -16,7 +16,6 @@
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <div id="ui-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-  <div id="rain-layer" class="rain-layer" aria-hidden="true"></div>
 
   <header class="site-header">
     <div class="container header-shell">
@@ -44,12 +43,9 @@
     </div>
   </header>
 
-  <div class="floating-tools" role="group" aria-label="View controls">
+  <div class="floating-tools" role="group" aria-label="Theme control">
     <button id="theme-toggle" class="tool-btn" type="button" aria-label="Toggle theme" aria-pressed="false">
       <i class="fa-solid fa-moon"></i>
-    </button>
-    <button id="rain-toggle" class="tool-btn" type="button" aria-label="Toggle rain effect" aria-pressed="true">
-      <i class="fa-solid fa-cloud-rain"></i>
     </button>
   </div>
 
@@ -75,14 +71,6 @@
           </div>
 
           <div class="hero-device-wrap reveal" id="hero-device-wrap">
-            <div class="hero-orbit-card hero-orbit-card--left" aria-hidden="true">
-              <img src="images/inspire-solution.jpg" alt="" width="1145" height="651">
-              <span>Clarity</span>
-            </div>
-            <div class="hero-orbit-card hero-orbit-card--right" aria-hidden="true">
-              <img src="images/inspire-hero.jpg" alt="" width="1145" height="651">
-              <span>Direction</span>
-            </div>
             <div class="hero-device" id="hero-device" aria-hidden="true">
               <div class="device-camera"></div>
               <div class="hero-device-screen" id="hero-screen">
@@ -136,7 +124,6 @@
                   <div class="hero-close-logo hero-close-logo--image">
                     <img src="logo.png" alt="" class="site-logo-image" width="1254" height="1254">
                   </div>
-                  <p class="hero-close-text">Designing clarity from complexity.</p>
                 </div>
               </div>
             </div>
@@ -484,6 +471,10 @@
   </main>
 
   <footer class="site-footer">
+    <div class="footer-art" aria-hidden="true">
+      <img class="footer-art-image footer-art-image--clarity" src="images/inspire-solution.jpg" alt="" width="1145" height="651" loading="lazy">
+      <img class="footer-art-image footer-art-image--direction" src="images/inspire-hero.jpg" alt="" width="1145" height="651" loading="lazy">
+    </div>
     <div class="footer-word" aria-hidden="true">LESLIE</div>
     <div class="container footer-bar">
       <div class="footer-left">

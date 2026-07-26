@@ -78,22 +78,6 @@
       }
     });
 
-    gsap.to('.hero-orbit-card--left', {
-      yPercent: -65,
-      xPercent: -8,
-      rotation: -14,
-      ease: 'none',
-      scrollTrigger: { trigger: '.hero-section', start: 'top top', end: 'bottom bottom', scrub: .8 }
-    });
-
-    gsap.to('.hero-orbit-card--right', {
-      yPercent: 48,
-      xPercent: 10,
-      rotation: 13,
-      ease: 'none',
-      scrollTrigger: { trigger: '.hero-section', start: 'top top', end: 'bottom bottom', scrub: .8 }
-    });
-
     ScrollTrigger.create({
       trigger: '.hero-section',
       start: 'top top',
