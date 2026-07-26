@@ -31,7 +31,7 @@ function Receive-CdpMessage {
   $builder = [System.Text.StringBuilder]::new()
   do {
     $segment = [ArraySegment[byte]]::new($buffer)
-    $readTimeout = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds(30))
+    $readTimeout = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds(60))
     try {
       $received = $script:socket.ReceiveAsync($segment, $readTimeout.Token).GetAwaiter().GetResult()
     } catch [System.OperationCanceledException] {
@@ -79,7 +79,9 @@ function Invoke-PageScript {
     userGesture = $true
   }
   if ($response.exceptionDetails) {
-    throw "Browser script failed: $($response.exceptionDetails.text)"
+    $description = $response.exceptionDetails.exception.description
+    $location = if ($response.exceptionDetails.lineNumber -ne $null) { " at line $($response.exceptionDetails.lineNumber)" } else { '' }
+    throw "Browser script failed$location`: $($response.exceptionDetails.text) $description"
   }
   return $response.result.value
 }
@@ -108,7 +110,7 @@ function Set-ViewportAndLoad {
     deviceScaleFactor = 1
     mobile = $false
   })
-  [void](Invoke-Cdp -Method 'Page.navigate' -Params @{ url = "${Url}?viewport=$Width" })
+  [void](Invoke-Cdp -Method 'Page.navigate' -Params @{ url = "${Url}?viewport=$Width&browser-audit=1" })
   Wait-DocumentReady
   Start-Sleep -Milliseconds 350
 }
@@ -188,8 +190,20 @@ try {
   [void](Invoke-Cdp -Method 'Page.addScriptToEvaluateOnNewDocument' -Params @{
     source = @'
 window.__portfolioAuditErrors = [];
+window.__portfolioAuditCLS = 0;
+window.__portfolioAuditLongTasks = 0;
 window.addEventListener('error', event => window.__portfolioAuditErrors.push(String(event.message || event.error)));
 window.addEventListener('unhandledrejection', event => window.__portfolioAuditErrors.push(String(event.reason)));
+try {
+  new PerformanceObserver(list => {
+    for (const entry of list.getEntries()) {
+      if (!entry.hadRecentInput) window.__portfolioAuditCLS += entry.value;
+    }
+  }).observe({type:'layout-shift', buffered:true});
+  new PerformanceObserver(list => {
+    for (const entry of list.getEntries()) window.__portfolioAuditLongTasks += entry.duration;
+  }).observe({type:'longtask', buffered:true});
+} catch {}
 '@
   })
 
@@ -262,6 +276,8 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
     }
   }
 
+  $auditSummary.Add('Responsive viewport matrix completed.')
+
   Write-Host 'Checking desktop interactions...'
   Set-ViewportAndLoad -Width 1280 -Height 900 -Url $pageUrl
   $structure = Invoke-PageScript -Expression @'
@@ -327,6 +343,61 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
   Assert-Audit ($toggles.themeChanged -and $toggles.rainChanged -and $toggles.marqueePaused) 'Theme, rain, or scrolling-ticker controls did not update their accessible state.'
   Assert-Audit (@($toggles.cardObjectFit | Where-Object { $_ -ne 'contain' }).Count -eq 0 -and $toggles.featuredObjectFit -eq 'contain') 'One or more project images use a cropping object-fit value.'
   Assert-Audit (-not [string]::IsNullOrWhiteSpace($toggles.contactLabel) -and $toggles.contactRequired) 'Contact textarea label or required state is missing.'
+  $auditSummary.Add('Desktop structure and persistent controls completed.')
+
+  $contactForm = Invoke-PageScript -Expression @'
+(() => {
+  const form = document.querySelector('.contact-form');
+  const name = document.querySelector('#contact-name');
+  const email = document.querySelector('#contact-email');
+  const message = document.querySelector('#contact-message');
+  form.dispatchEvent(new SubmitEvent('submit', {bubbles:true, cancelable:true}));
+  const blank = {
+    focus:document.activeElement.id,
+    invalid:[name, email, message].map(field => field.getAttribute('aria-invalid')),
+    errors:[...document.querySelectorAll('.form-error')].map(error => error.textContent.trim())
+  };
+  name.value = 'Portfolio visitor';
+  email.value = 'visitor@example.com';
+  message.value = 'A concise project request with enough context.';
+  for (const field of [name, email, message]) field.dispatchEvent(new Event('input', {bubbles:true}));
+  return {
+    blank,
+    valid:form.checkValidity(),
+    noValidate:form.noValidate,
+    autocomplete:[name.autocomplete, email.autocomplete],
+    describedBy:[name, email, message].map(field => field.getAttribute('aria-describedby')),
+    submitHeight:form.querySelector('button[type="submit"]').getBoundingClientRect().height,
+    disclosure:document.querySelector('#contact-instructions').textContent.trim()
+  };
+})()
+'@
+  Assert-Audit ($contactForm.blank.focus -eq 'contact-name' -and @($contactForm.blank.invalid | Where-Object { $_ -ne 'true' }).Count -eq 0) 'Blank contact submission did not focus and mark the first invalid field.'
+  Assert-Audit (@($contactForm.blank.errors | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -eq 0) 'Contact form did not provide a visible error for every required field.'
+  Assert-Audit ($contactForm.valid -and $contactForm.noValidate -and ($contactForm.autocomplete -join ',') -eq 'name,email') 'Contact form validity, custom-validation, or autocomplete metadata is incorrect.'
+  Assert-Audit (@($contactForm.describedBy | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -eq 0) 'A contact field is not associated with instructions or an error message.'
+  Assert-Audit ($contactForm.submitHeight -ge 44 -and $contactForm.disclosure -match 'email draft') 'Contact action is too small or its truthful mail-draft disclosure is missing.'
+  $auditSummary.Add('Contact-form validation completed.')
+
+  $performance = Invoke-PageScript -Expression @'
+(() => {
+  const navigation = performance.getEntriesByType('navigation')[0];
+  const resources = performance.getEntriesByType('resource');
+  const fcp = performance.getEntriesByName('first-contentful-paint')[0];
+  return {
+    domContentLoaded:Math.round(navigation?.domContentLoadedEventEnd || 0),
+    load:Math.round(navigation?.loadEventEnd || 0),
+    fcp:Math.round(fcp?.startTime || 0),
+    cls:Number((window.__portfolioAuditCLS || 0).toFixed(4)),
+    longTasks:Math.round(window.__portfolioAuditLongTasks || 0),
+    resources:resources.length,
+    transferred:resources.reduce((total, entry) => total + (entry.transferSize || 0), 0),
+    domNodes:document.querySelectorAll('*').length
+  };
+})()
+'@
+  $auditSummary.Add("Observed local-load diagnostics at 1280 px: FCP=$($performance.fcp) ms, DOMContentLoaded=$($performance.domContentLoaded) ms, load=$($performance.load) ms, CLS=$($performance.cls), long tasks=$($performance.longTasks) ms, DOM nodes=$($performance.domNodes), resources=$($performance.resources), transferred bytes=$($performance.transferred).")
+  Assert-Audit ($performance.cls -lt 0.1) "Observed cumulative layout shift is $($performance.cls), above the 0.1 audit threshold."
 
   $roles = Test-AccessibilityTree -Context 'Desktop page'
   foreach ($requiredRole in @('banner', 'navigation', 'main', 'contentinfo')) {
@@ -336,16 +407,31 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
   $navResult = Invoke-PageScript -Expression @'
 (async () => {
   document.documentElement.style.scrollBehavior = 'auto';
+  document.activeElement?.blur();
   const tests = [['work','work'], ['workspace','workspace'], ['process','process'], ['experience','experience'], ['contact','contact']];
   const states = [];
-  window.scrollTo(0, 0);
-  await new Promise(resolve => setTimeout(resolve, 80));
-  states.push({target:'about', active:[...document.querySelectorAll('#nav-menu .is-active')].map(link => link.dataset.nav)});
+  const activeKeys = () => [...document.querySelectorAll('#nav-menu .is-active')].map(link => link.dataset.nav);
+  const currentKeys = () => [...document.querySelectorAll('#nav-menu [aria-current="location"]')].map(link => link.dataset.nav);
+  const layoutTop = element => {
+    let top = 0;
+    for (let current = element; current; current = current.offsetParent) top += current.offsetTop || 0;
+    return top;
+  };
+  const settle = async expected => {
+    for (let attempt = 0; attempt < 36; attempt += 1) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      const active = activeKeys();
+      if (expected ? active.length === 1 && active[0] === expected : active.length === 0) return;
+    }
+  };
+  window.scrollTo({top:0, behavior:'instant'});
+  await settle(null);
+  states.push({target:'about', active:activeKeys()});
   for (const [id, expected] of tests) {
-    document.getElementById(id).scrollIntoView({block:'start'});
+    window.scrollTo({top:layoutTop(document.getElementById(id)), behavior:'instant'});
     window.dispatchEvent(new Event('scroll'));
-    await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 80)));
-    states.push({target:id, expected, active:[...document.querySelectorAll('#nav-menu .is-active')].map(link => link.dataset.nav), current:[...document.querySelectorAll('#nav-menu [aria-current="location"]')].map(link => link.dataset.nav)});
+    await settle(expected);
+    states.push({target:id, expected, active:activeKeys(), current:currentKeys()});
   }
   return states;
 })()
@@ -411,23 +497,36 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
   Assert-Audit ($counts.goldbar -eq '1 / 12') "GoldBar Fitness image total is incorrect: $($counts.goldbar)."
   Assert-Audit ($counts.wealthwise -eq '1 / 6') "WealthWise image total is incorrect: $($counts.wealthwise)."
 
+  [void](Invoke-PageScript -Expression @'
+(async () => {
+  document.querySelector('[data-case-study="wealthwise"]').click();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return true;
+})()
+'@)
+  Save-CurrentScreenshot -Name 'case-study-1280-dark'
+  [void](Invoke-PageScript -Expression "document.querySelector('#real-work-detail-close').click(); true")
+
   $workspace = Invoke-PageScript -Expression @'
 (async () => {
   const stage = document.querySelector('#workspace-stage');
   const total = Math.max(stage.offsetHeight - innerHeight, 1);
-  window.scrollTo(0, stage.offsetTop + total * .45);
+  const targetY = stage.offsetTop + total * .45;
+  document.documentElement.style.scrollBehavior = 'auto';
+  window.scrollTo({top:targetY, behavior:'instant'});
+  const immediateY = window.scrollY;
   window.dispatchEvent(new Event('scroll'));
   await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 120)));
   const ready = document.querySelector('#workspace-device').classList.contains('is-ready');
   document.querySelector('#workspace-turn-on').click();
-  const output = {ready, powered:document.querySelector('#workspace-device').classList.contains('is-powered'), projects:{}};
+  const output = {ready, powered:document.querySelector('#workspace-device').classList.contains('is-powered'), targetY, immediateY, scrollY, scrollBehavior:getComputedStyle(document.documentElement).scrollBehavior, stageTop:stage.getBoundingClientRect().top, stageOffsetTop:stage.offsetTop, offsetParent:stage.offsetParent?.className || stage.offsetParent?.tagName, projects:{}};
   for (const key of ['akwaaba','goldbar','wealthwise']) {
     const launcher = document.querySelector(`.desktop-icon[data-project="${key}"]`);
     launcher.click();
     await new Promise(resolve => setTimeout(resolve, 40));
     output.projects[key] = {
       title: document.querySelector('#project-window-title').textContent,
-      frame: document.querySelector('#project-frame').getAttribute('src'),
+      frame: document.querySelector('#project-frame').dataset.requestedSrc || document.querySelector('#project-frame').getAttribute('src'),
       open: document.querySelector('#project-browser-open').href,
       frameTitle: document.querySelector('#project-frame').title,
       visible: document.querySelector('#project-window').classList.contains('is-visible')
@@ -448,7 +547,7 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
   return output;
 })()
 '@
-  Assert-Audit ($workspace.ready -and $workspace.powered) 'Desktop laptop did not become ready and power on.'
+  Assert-Audit ($workspace.ready -and $workspace.powered) "Desktop laptop did not become ready and power on: $($workspace | ConvertTo-Json -Compress -Depth 3)."
   $expectedProjects = @{
     akwaaba = @{ Title = 'Akwaaba House'; Url = 'https://akwaabahouse.netlify.app/' }
     goldbar = @{ Title = 'GoldBar Fitness'; Url = 'https://goldbarfitness.netlify.app/' }
@@ -488,6 +587,7 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
   toggle.click();
   await new Promise(resolve => requestAnimationFrame(resolve));
   const opened = menu.classList.contains('is-open') && toggle.getAttribute('aria-expanded') === 'true' && document.activeElement === menu.querySelector('a');
+  const openedState = {menuOpen:menu.classList.contains('is-open'), expanded:toggle.getAttribute('aria-expanded'), focusTag:document.activeElement?.tagName, focusHref:document.activeElement?.getAttribute?.('href')};
   toggle.click();
   const hamburgerClosed = !menu.classList.contains('is-open');
   toggle.click();
@@ -504,13 +604,24 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
   document.querySelector('[data-case-study="goldbar"]').click();
   await new Promise(resolve => setTimeout(resolve, 80));
   const dynamicOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
-  return {opened, hamburgerClosed, escapeClosed, outsideClosed, linkClosed, directLinks, dynamicOverflow};
+  return {opened, openedState, hamburgerClosed, escapeClosed, outsideClosed, linkClosed, directLinks, dynamicOverflow};
 })()
 '@
-  Assert-Audit ($mobile.opened) 'Mobile menu did not open with focus on its first link.'
+  Assert-Audit ($mobile.opened) "Mobile menu did not open with focus on its first link: $($mobile | ConvertTo-Json -Compress -Depth 3)."
   Assert-Audit ($mobile.hamburgerClosed -and $mobile.escapeClosed -and $mobile.outsideClosed -and $mobile.linkClosed) 'One or more mobile-menu closing methods failed.'
   Assert-Audit (($mobile.directLinks -join ',') -eq 'https://akwaabahouse.netlify.app/,https://goldbarfitness.netlify.app/,https://wealthwiselt.netlify.app/') 'Mobile direct live-project URLs are incorrect.'
   Assert-Audit (-not $mobile.dynamicOverflow) 'Opening a mobile case study creates horizontal overflow.'
+  [void](Invoke-PageScript -Expression "document.querySelector('#real-work-detail').scrollIntoView({block:'start', behavior:'instant'}); true")
+  Start-Sleep -Milliseconds 350
+  $mobileTargets = Invoke-PageScript -Expression @'
+(() => [...document.querySelectorAll('#nav-toggle, #theme-toggle, #rain-toggle, #real-work-detail-close, #real-work-prev, #real-work-next')]
+  .filter(element => getComputedStyle(element).display !== 'none')
+  .map(element => ({name:element.id, width:Math.round(element.getBoundingClientRect().width), height:Math.round(element.getBoundingClientRect().height)})))()
+'@
+  foreach ($target in $mobileTargets) {
+    Assert-Audit ($target.width -ge 44 -and $target.height -ge 44) "Mobile control $($target.name) is only $($target.width) x $($target.height) px."
+  }
+  Save-CurrentScreenshot -Name 'case-study-375-dark'
   [void](Test-AccessibilityTree -Context 'Mobile page with a case study open')
 
   Write-Host 'Checking axe-core in dark and light themes...'
@@ -560,6 +671,41 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
     Write-Warning 'axe-core could not be loaded from its CDN; accessibility-tree and DOM checks still ran.'
   }
 
+  Write-Host 'Checking reduced-motion behavior...'
+  [void](Invoke-Cdp -Method 'Emulation.setEmulatedMedia' -Params @{ features = @(@{ name = 'prefers-reduced-motion'; value = 'reduce' }) })
+  Set-ViewportAndLoad -Width 1280 -Height 900 -Url $pageUrl
+  $reducedMotion = Invoke-PageScript -Expression @'
+(() => ({
+  matches:matchMedia('(prefers-reduced-motion: reduce)').matches,
+  heroStickyPosition:getComputedStyle(document.querySelector('.hero-sticky')).position,
+  orbitDisplay:getComputedStyle(document.querySelector('.hero-orbit-card')).display,
+  rainDisplay:getComputedStyle(document.querySelector('.rain-layer')).display,
+  marqueeAnimation:getComputedStyle(document.querySelector('.marquee-track')).animationName,
+  duplicateTickerDisplay:getComputedStyle(document.querySelector('.marquee-group[aria-hidden="true"]')).display,
+  hiddenReveals:[...document.querySelectorAll('.reveal')].filter(element => Number(getComputedStyle(element).opacity) < .99).length,
+  errors:window.__portfolioAuditErrors || []
+}))()
+'@
+  Assert-Audit ($reducedMotion.matches -and $reducedMotion.heroStickyPosition -eq 'relative') 'Reduced-motion preference did not disable the sticky cinematic hero.'
+  Assert-Audit ($reducedMotion.orbitDisplay -eq 'none' -and $reducedMotion.rainDisplay -eq 'none' -and $reducedMotion.marqueeAnimation -eq 'none' -and $reducedMotion.duplicateTickerDisplay -eq 'none') 'Reduced-motion preference left decorative or looping motion active.'
+  Assert-Audit ($reducedMotion.hiddenReveals -eq 0 -and @($reducedMotion.errors).Count -eq 0) 'Reduced-motion mode hides content or emitted a runtime error.'
+  [void](Invoke-Cdp -Method 'Emulation.setEmulatedMedia' -Params @{ features = @(@{ name = 'prefers-reduced-motion'; value = 'no-preference' }) })
+
+  Write-Host 'Checking 200% reflow equivalent...'
+  Set-ViewportAndLoad -Width 640 -Height 450 -Url $pageUrl
+  $zoomReflow = Invoke-PageScript -Expression @'
+(() => ({
+  scrollWidth:document.documentElement.scrollWidth,
+  clientWidth:document.documentElement.clientWidth,
+  menuButtonVisible:getComputedStyle(document.querySelector('#nav-toggle')).display !== 'none',
+  desktopDeviceHidden:getComputedStyle(document.querySelector('.workspace-stage')).display === 'none',
+  errors:window.__portfolioAuditErrors || []
+}))()
+'@
+  Assert-Audit ($zoomReflow.scrollWidth -le ($zoomReflow.clientWidth + 1) -and $zoomReflow.menuButtonVisible -and $zoomReflow.desktopDeviceHidden) 'The 1280 px layout did not reflow cleanly at a 200% equivalent CSS viewport.'
+  Assert-Audit (@($zoomReflow.errors).Count -eq 0) 'The 200% reflow-equivalent check emitted JavaScript errors.'
+  $auditSummary.Add('200% reflow equivalent passed at a 640 CSS-pixel viewport for a 1280 px display.')
+
   $designPageUrl = ([uri](Join-Path $projectRoot 'pages\design-process.html')).AbsoluteUri
   foreach ($designViewport in @(@{Width=320;Height=700}, @{Width=1440;Height=900})) {
     Write-Host "Checking design-process page at $($designViewport.Width) px..."
@@ -595,10 +741,16 @@ window.addEventListener('unhandledrejection', event => window.__portfolioAuditEr
     exit 1
   }
 
-  $passSummary = 'Browser validation passed across 320, 375, 430, 768, 1024, 1280, 1440, and 1920 px, including navigation, focus, menus, case studies, galleries, live projects, layout, and accessibility-tree checks.'
+  $passSummary = 'Browser validation passed across 320, 375, 430, 768, 1024, 1280, 1440, and 1920 px, including navigation, focus, menus, forms, case studies, galleries, live projects, reduced motion, 200% reflow, layout, and accessibility-tree checks.'
   $auditSummary.Add($passSummary)
   $auditSummary | Set-Content -LiteralPath (Join-Path $reportRoot 'browser-summary.txt') -Encoding utf8
   Write-Host $passSummary -ForegroundColor Green
+} catch {
+  $fatalMessage = "Browser audit aborted: $($_.Exception.Message)"
+  $auditSummary.Add($fatalMessage)
+  $auditSummary | Set-Content -LiteralPath (Join-Path $reportRoot 'browser-summary.txt') -Encoding utf8
+  Write-Host $fatalMessage -ForegroundColor Red
+  throw
 } finally {
   if ($script:socket -and $script:socket.State -eq [System.Net.WebSockets.WebSocketState]::Open) {
     try { [void](Invoke-Cdp -Method 'Browser.close') } catch {}
