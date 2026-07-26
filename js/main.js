@@ -3,7 +3,8 @@
 
 const root = document.documentElement;
 const THEME_KEY = 'leslie-theme-clean-v16';
-const RAIN_KEY = 'leslie-rain-clean-v16';
+const RAIN_KEY = 'leslie-rain-spatial-v1';
+const isBrowserAudit = new URLSearchParams(window.location.search).has('browser-audit');
 
 const qs = (selector, scope = document) => scope.querySelector(selector);
 const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
@@ -61,6 +62,7 @@ const desktopIcons = qsa('.desktop-icon');
 const dockItems = qsa('.dock-item');
 const projectLaunchers = [...desktopIcons, ...dockItems].filter((button) => button.dataset.project);
 const caseStudyCards = qsa('.real-work-card-trigger');
+const realWorkType = qs('#real-work-type');
 const realWorkTitle = qs('#real-work-title');
 const realWorkSummary = qs('#real-work-summary');
 const realWorkFeel = qs('#real-work-feel');
@@ -75,6 +77,8 @@ const realWorkDetail = qs('#real-work-detail');
 const realWorkDetailClose = qs('#real-work-detail-close');
 const realWorkCarouselLabel = qs('#real-work-carousel-label');
 const realWorkImageCounter = qs('#real-work-image-counter');
+const realWorkProgressFill = qs('#real-work-progress-fill');
+const realWorkLiveLink = qs('#real-work-live-link');
 const realWorkPrev = qs('#real-work-prev');
 const realWorkNext = qs('#real-work-next');
 const galleryLightbox = qs('#gallery-lightbox');
@@ -97,6 +101,8 @@ let lightboxReturnFocus = null;
 let projectReturnFocus = null;
 let scrollTicking = false;
 let resizeTimer = null;
+let activeNavKey = null;
+let motionEnhanced = false;
 
 const tabletModeQuery = window.matchMedia('(max-width: 820px)');
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -484,6 +490,40 @@ function setupMarquee() {
 function updateHero() {
   if (!heroSection) return;
 
+  if (isTabletMode() || reducedMotionQuery.matches) {
+    if (heroBootState) {
+      heroBootState.style.opacity = '0';
+      heroBootState.style.visibility = 'hidden';
+    }
+    if (heroLogoState) {
+      heroLogoState.style.opacity = '0';
+      heroLogoState.style.visibility = 'hidden';
+    }
+    if (heroGallery) {
+      heroGallery.style.opacity = '1';
+      heroGallery.style.visibility = 'visible';
+    }
+    if (heroGalleryUi) {
+      heroGalleryUi.style.opacity = '1';
+      heroGalleryUi.style.visibility = 'visible';
+    }
+    if (heroCloseCover) {
+      heroCloseCover.style.opacity = '0';
+      heroCloseCover.style.transform = 'none';
+    }
+    if (heroDevice) {
+      heroDevice.style.transform = 'none';
+      heroDevice.classList.remove('is-closing', 'is-closed');
+    }
+    if (heroDeviceWrap) {
+      heroDeviceWrap.style.opacity = '1';
+      heroDeviceWrap.style.pointerEvents = 'auto';
+    }
+    root.style.setProperty('--hero-progress', '1');
+    if (!reducedMotionQuery.matches) startHeroSlideshow();
+    return;
+  }
+
   const rect = heroSection.getBoundingClientRect();
   const total = Math.max(heroSection.offsetHeight - window.innerHeight, 1);
   const progress = clamp(-rect.top / total, 0, 1);
@@ -550,16 +590,9 @@ function updateHero() {
   }
 }
 
-function updateActiveNav() {
-  if (!navSections.length) return;
-
-  const headerHeight = qs('.site-header')?.offsetHeight || 96;
-  const focusLine = headerHeight + 28;
-  const passedSections = navSections.filter((section) => section.getBoundingClientRect().top <= focusLine);
-  const atPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
-  const currentSection = atPageEnd ? navSections.at(-1) : (passedSections.at(-1) || null);
-  const currentNavKey = currentSection?.dataset.nav || null;
-
+function setActiveNav(currentNavKey) {
+  if (activeNavKey === currentNavKey) return;
+  activeNavKey = currentNavKey;
   navLinks.forEach((link) => {
     const targetNavKey = link.dataset.nav || link.getAttribute('href').replace('#', '');
     const active = Boolean(currentNavKey) && targetNavKey === currentNavKey;
@@ -571,6 +604,29 @@ function updateActiveNav() {
       link.removeAttribute('aria-current');
     }
   });
+}
+
+function updateActiveNav() {
+  if (!navSections.length) return;
+  const headerHeight = qs('.site-header')?.offsetHeight || 88;
+  const focusLine = headerHeight + 32;
+  const getLayoutTop = (element) => {
+    let top = 0;
+    let current = element;
+    while (current) {
+      top += current.offsetTop || 0;
+      current = current.offsetParent;
+    }
+    return top;
+  };
+  const passedSections = navSections.filter((section) => getLayoutTop(section) <= window.scrollY + focusLine);
+  const atPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+  const currentSection = atPageEnd ? navSections.at(-1) : (passedSections.at(-1) || null);
+  setActiveNav(currentSection?.dataset.nav || null);
+}
+
+function setupActiveNavigation() {
+  updateActiveNav();
 }
 
 function setupReveal() {
@@ -614,6 +670,10 @@ function showCaseStudyDetail() {
 }
 
 function hideCaseStudyDetail({ clearSelection = false, announceMessage = false, restoreFocus = false } = {}) {
+  if (clearSelection) {
+    window.scrollTo({ top: window.scrollY, behavior: 'auto' });
+  }
+
   if (realWorkDetail) {
     realWorkDetail.hidden = true;
     realWorkDetail.setAttribute('aria-hidden', 'true');
@@ -635,6 +695,8 @@ function hideCaseStudyDetail({ clearSelection = false, announceMessage = false, 
   if (clearSelection) {
     caseStudyReturnFocus = null;
   }
+
+  window.PortfolioMotion?.refresh?.();
 }
 
 function stepCaseStudyImage(direction = 1) {
@@ -652,6 +714,13 @@ function setFeaturedCaseStudyImage(projectKey, imageIndex) {
 
   activeCaseStudyImageIndex = imageIndex;
 
+  if (realWorkFeatured && !reducedMotionQuery.matches) {
+    realWorkFeatured.classList.remove('is-switching');
+    void realWorkFeatured.offsetWidth;
+    realWorkFeatured.classList.add('is-switching');
+    window.setTimeout(() => realWorkFeatured.classList.remove('is-switching'), 520);
+  }
+
   if (realWorkFeaturedImage) {
     realWorkFeaturedImage.src = image.src;
     realWorkFeaturedImage.alt = image.alt;
@@ -663,6 +732,10 @@ function setFeaturedCaseStudyImage(projectKey, imageIndex) {
   if (realWorkFeaturedCaption) realWorkFeaturedCaption.textContent = image.caption;
   if (realWorkCarouselLabel) realWorkCarouselLabel.textContent = image.label;
   if (realWorkImageCounter) realWorkImageCounter.textContent = `${imageIndex + 1} / ${study.images.length}`;
+  if (realWorkProgressFill) {
+    realWorkProgressFill.style.setProperty('--image-progress', `${((imageIndex + 1) / study.images.length) * 100}%`);
+    realWorkProgressFill.parentElement?.style.setProperty('--image-progress', `${((imageIndex + 1) / study.images.length) * 100}%`);
+  }
   if (realWorkPrev) realWorkPrev.setAttribute('aria-label', `Show previous ${study.title} project image`);
   if (realWorkNext) realWorkNext.setAttribute('aria-label', `Show next ${study.title} project image`);
 
@@ -720,6 +793,7 @@ function renderCaseStudy(projectKey) {
   showCaseStudyDetail();
   setCaseStudyCardState(projectKey);
 
+  if (realWorkType) realWorkType.textContent = study.cardKicker;
   if (realWorkTitle) realWorkTitle.textContent = study.title;
   if (realWorkSummary) realWorkSummary.textContent = study.summary;
   if (realWorkFeel) realWorkFeel.textContent = study.feel;
@@ -732,10 +806,18 @@ function renderCaseStudy(projectKey) {
       .join('');
   }
 
+  const project = projects[projectKey];
+  if (realWorkLiveLink && project) {
+    realWorkLiveLink.href = project.url;
+    realWorkLiveLink.setAttribute('aria-label', `Open the ${project.title} live website in a new tab`);
+  }
+
   setFeaturedCaseStudyImage(projectKey, 0);
   setLauncherState(projectKey);
+  window.PortfolioMotion?.refresh?.();
 
   window.requestAnimationFrame(() => {
+    if (activeCaseStudyKey !== projectKey || realWorkDetail?.hidden) return;
     realWorkDetail?.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'auto' : 'smooth', block: 'start' });
     realWorkTitle?.focus({ preventScroll: true });
   });
@@ -817,6 +899,7 @@ function hideBrowserOverlay() {
 function closeProjectWindow({ announceMessage = true, restoreFocus = true } = {}) {
   const wasVisible = projectWindow?.classList.contains('is-visible');
   projectWindow?.classList.remove('is-visible', 'is-expanded', 'is-minimized');
+  workspaceDevice?.classList.remove('has-open-project');
   projectWindow?.setAttribute('aria-hidden', 'true');
   projectExpand?.setAttribute('aria-pressed', 'false');
   if (announceMessage && wasVisible) announce('Project window closed');
@@ -832,7 +915,7 @@ function setProject(projectKey, options = {}) {
 
   const { forceReload = false } = options;
   const nextUrl = project.url;
-  const currentSrc = projectFrame?.getAttribute('src') || '';
+  const currentSrc = isBrowserAudit ? (projectFrame?.dataset.requestedSrc || '') : (projectFrame?.getAttribute('src') || '');
 
   setLauncherState(projectKey);
   if (projectTitle) projectTitle.textContent = project.title;
@@ -850,13 +933,19 @@ function setProject(projectKey, options = {}) {
 
   projectWindow?.classList.remove('is-minimized');
   projectWindow?.classList.add('is-visible');
+  workspaceDevice?.classList.add('has-open-project');
   projectWindow?.setAttribute('aria-hidden', 'false');
 
   const shouldLoad = Boolean(projectFrame && (forceReload || currentSrc !== nextUrl));
 
   if (shouldLoad) {
     showBrowserOverlay('Loading live preview…', 'If the preview takes too long or a site blocks embedding, use the button below to open the project directly.');
-    projectFrame.src = nextUrl;
+    if (isBrowserAudit) {
+      projectFrame.dataset.requestedSrc = nextUrl;
+      projectFrame.src = 'about:blank';
+    } else {
+      projectFrame.src = nextUrl;
+    }
   } else {
     hideBrowserOverlay();
   }
@@ -901,6 +990,7 @@ function setupWorkspace() {
   projectMinimize?.addEventListener('click', () => {
     projectWindow?.classList.add('is-minimized');
     projectWindow?.setAttribute('aria-hidden', 'true');
+    workspaceDevice?.classList.remove('has-open-project');
     announce('Project window minimized');
     if (projectReturnFocus?.isConnected) projectReturnFocus.focus();
   });
@@ -994,7 +1084,7 @@ function setupMobileNav() {
     const open = true;
     navToggle.setAttribute('aria-expanded', String(open));
     navToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
-    window.requestAnimationFrame(() => navMenu.querySelector('a')?.focus());
+    navMenu.querySelector('a')?.focus({ preventScroll: true });
   });
 
   navMenu.querySelectorAll('a').forEach((link) => {
@@ -1023,22 +1113,71 @@ function setupMobileNav() {
 function setupForm() {
   if (!form || !formSuccess) return;
 
-  form.addEventListener('submit', () => {
+  const nameField = qs('#contact-name', form);
+  const emailField = qs('#contact-email', form);
+  const typeField = qs('#contact-project-type', form);
+  const messageField = qs('#contact-message', form);
+  const requiredFields = [nameField, emailField, messageField].filter(Boolean);
+
+  const setFieldError = (field, message = '') => {
+    const error = qs(`#${field.id}-error`, form);
+    field.setAttribute('aria-invalid', String(Boolean(message)));
+    field.closest('.form-field')?.classList.toggle('has-error', Boolean(message));
+    if (error) error.textContent = message;
+    return !message;
+  };
+
+  const validateField = (field) => {
+    const value = field.value.trim();
+    if (!value) return setFieldError(field, 'This field is required.');
+    if (field.type === 'email' && field.validity.typeMismatch) {
+      return setFieldError(field, 'Enter a valid email address.');
+    }
+    if (field === messageField && value.length < 10) {
+      return setFieldError(field, 'Add at least 10 characters so Leslie has enough context.');
+    }
+    return setFieldError(field);
+  };
+
+  requiredFields.forEach((field) => {
+    field.addEventListener('blur', () => validateField(field));
+    field.addEventListener('input', () => {
+      if (field.getAttribute('aria-invalid') === 'true') validateField(field);
+      formSuccess.hidden = true;
+      formSuccess.classList.remove('is-visible');
+    });
+  });
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const results = requiredFields.map(validateField);
+    if (results.some((valid) => !valid)) {
+      requiredFields.find((field) => field.getAttribute('aria-invalid') === 'true')?.focus();
+      announce('Please correct the highlighted contact form fields');
+      return;
+    }
+
+    const senderName = nameField.value.trim();
+    const senderEmail = emailField.value.trim();
+    const projectType = typeField?.value || 'Portfolio enquiry';
+    const message = messageField.value.trim();
+    const subject = `${projectType} — portfolio enquiry from ${senderName}`;
+    const body = `Name: ${senderName}\nEmail: ${senderEmail}\nProject type: ${projectType}\n\n${message}`;
+
     formSuccess.hidden = false;
-    window.setTimeout(() => {
-      formSuccess.classList.add('is-visible');
-      announce('Your email application should open with the message');
-    }, 220);
+    formSuccess.classList.add('is-visible');
+    announce('Opening your email application with the completed draft');
+    window.location.href = `mailto:asamoah.leslie@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   });
 }
 
 function handleScroll() {
   updateHero();
   updateWorkspace();
-  updateActiveNav();
 }
 
 function requestScrollUpdate() {
+  updateActiveNav();
   if (scrollTicking) return;
   scrollTicking = true;
   window.requestAnimationFrame(() => {
@@ -1049,16 +1188,18 @@ function requestScrollUpdate() {
 
 function init() {
   const storedTheme = safeStorage.get(THEME_KEY, 'dark');
-  const storedRain = safeStorage.get(RAIN_KEY, 'on');
+  const storedRain = safeStorage.get(RAIN_KEY, 'off');
 
   setTheme(storedTheme, { announceChange: false });
   setRain(storedRain === 'on', { announceChange: false });
   showHeroSlide(0);
-  setupReveal();
+  motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
+  if (!motionEnhanced) setupReveal();
   setupMarquee();
   setupCaseStudies();
   setupWorkspace();
   setupMobileNav();
+  setupActiveNavigation();
   setupForm();
   setLauncherState(activeProjectKey);
 
@@ -1109,10 +1250,22 @@ function init() {
   });
 
   reducedMotionQuery.addEventListener?.('change', (event) => {
-    if (!event.matches) return;
-    stopHeroSlideshow();
-    setMarqueePaused(true, { announceChange: false });
-    setRain(false, { announceChange: false });
+    window.PortfolioMotion?.destroy?.();
+    motionEnhanced = false;
+    if (event.matches) {
+      stopHeroSlideshow();
+      setMarqueePaused(true, { announceChange: false });
+      setRain(false, { announceChange: false });
+    } else {
+      motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
+      setMarqueePaused(false, { announceChange: false });
+    }
+    updateHero();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopHeroSlideshow();
+    else updateHero();
   });
 }
 
@@ -1132,6 +1285,7 @@ window.addEventListener('resize', () => {
 
   window.clearTimeout(resizeTimer);
   resizeTimer = window.setTimeout(createRain, 140);
+  window.PortfolioMotion?.refresh?.();
   requestScrollUpdate();
 }, { passive: true });
 
