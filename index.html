@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Leslie Tannor's UI/UX portfolio, featuring Akwaaba House, GoldBar Fitness, and WealthWise case studies.">
+  <title>Leslie Tannor | UI/UX Designer in Progress</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div id="ui-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <div id="rain-layer" class="rain-layer" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container header-shell">
+      <a href="#about" class="brand" aria-label="Leslie Tannor home">
+        <span class="brand-mark brand-mark--logo">
+          <img src="logo.png" alt="" class="site-logo-image" width="1254" height="1254">
+        </span>
+        <span class="brand-copy">
+          <strong>Leslie Tannor</strong>
+          <small>UI/UX Designer in progress</small>
+        </span>
+      </a>
+
+      <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Open navigation" aria-controls="nav-menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav id="nav-menu" class="nav-menu" aria-label="Primary navigation">
+        <a href="#workspace" data-nav="workspace">Work</a>
+        <a href="#work" data-nav="work">Projects</a>
+        <a href="#process" data-nav="process">Process</a>
+        <a href="#experience" data-nav="experience">Experience</a>
+        <a href="#contact" data-nav="contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="floating-tools" role="group" aria-label="View controls">
+    <button id="theme-toggle" class="tool-btn" type="button" aria-label="Toggle theme" aria-pressed="false">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+    <button id="rain-toggle" class="tool-btn" type="button" aria-label="Toggle rain effect" aria-pressed="true">
+      <i class="fa-solid fa-cloud-rain"></i>
+    </button>
+  </div>
+
+  <main id="main-content" tabindex="-1">
+    <section id="about" class="hero-section" aria-labelledby="about-heading" tabindex="-1">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="hero-sticky">
+        <div class="container hero-shell">
+          <div class="hero-copy reveal">
+            <p class="eyebrow">A cleaner portfolio direction</p>
+            <h1 id="about-heading">Leslie Asamoah Tannor</h1>
+            <p class="hero-subtitle">A man on a mission to become a thoughtful, technical UI/UX designer.</p>
+          </div>
+
+          <div class="hero-device-wrap reveal" id="hero-device-wrap">
+            <div class="hero-device" id="hero-device" aria-hidden="true">
+              <div class="device-camera"></div>
+              <div class="hero-device-screen" id="hero-screen">
+                <div class="screen-noise"></div>
+
+                <div class="hero-boot-state" id="hero-boot-state">
+                  <span class="boot-kicker">Interactive intro</span>
+                  <span class="boot-ring"></span>
+                  <p>Scroll to power on</p>
+                  <small>Wake the device to reveal Leslie’s inspiration wall.</small>
+                  <span class="boot-arrow"><i class="fa-solid fa-arrow-down"></i></span>
+                </div>
+
+                <div class="hero-logo-state" id="hero-logo-state">
+                  <div class="sleep-logo-mark sleep-logo-mark--logo">
+                    <img src="logo.png" alt="" class="site-logo-image" width="1254" height="1254">
+                  </div>
+                  <div class="sleep-logo-copy">
+                    <strong>Leslie Tannor</strong>
+                    <small>UI/UX Designer in progress</small>
+                  </div>
+                </div>
+
+                <div class="hero-gallery" id="hero-gallery" aria-hidden="true">
+                  <div class="hero-slide is-active">
+                    <img class="hero-slide-poster" src="images/inspire-hope.jpg" alt="Hope on the Street inspiration poster" width="1145" height="651">
+                  </div>
+                  <div class="hero-slide">
+                    <img class="hero-slide-poster" src="images/inspire-solution.jpg" alt="Creative problem solving inspiration poster" width="1145" height="651">
+                  </div>
+                  <div class="hero-slide">
+                    <img class="hero-slide-poster" src="images/inspire-hero.jpg" alt="Be your own hero inspiration poster" width="1145" height="651">
+                  </div>
+                </div>
+
+                <div class="hero-gallery-ui" aria-hidden="true">
+                  <div class="hero-gallery-badge">Inspiration loaded</div>
+                  <div class="hero-gallery-dots">
+                    <span class="hero-dot is-active"></span>
+                    <span class="hero-dot"></span>
+                    <span class="hero-dot"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hero-close-cover" id="hero-close-cover" aria-hidden="true">
+                <div class="hero-close-cover-inner">
+                  <div class="hero-close-logo hero-close-logo--image">
+                    <img src="logo.png" alt="" class="site-logo-image" width="1254" height="1254">
+                  </div>
+                  <p class="hero-close-text">Welcome To My World, feel free to explore!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="transition-section reveal" aria-hidden="true">
+      <div class="transition-shell">
+        <div class="transition-lockup">
+          <div class="transition-logo transition-logo--image">
+            <img src="logo.png" alt="" class="site-logo-image" width="1254" height="1254">
+          </div>
+          <p>Designing clarity from complexity.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="marquee-section reveal" role="region" aria-label="Portfolio themes transition">
+      <div class="marquee-shell">
+        <button class="marquee-toggle" id="marquee-toggle" type="button" aria-label="Pause scrolling portfolio themes" aria-pressed="false">
+          <i class="fa-solid fa-pause" aria-hidden="true"></i>
+        </button>
+        <div class="marquee-track">
+          <div class="marquee-group">
+            <span>Design Process</span><span>User Flows</span><span>Interface Systems</span><span>Storytelling</span><span>Case Studies</span><span>Responsive Design</span>
+          </div>
+          <div class="marquee-group" aria-hidden="true">
+            <span>Design Process</span><span>User Flows</span><span>Interface Systems</span><span>Storytelling</span><span>Case Studies</span><span>Responsive Design</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <section id="work" class="showcase-section reveal" data-nav="work" aria-labelledby="work-heading" tabindex="-1">
+      <div class="container">
+        <div class="showcase-copy">
+          <p class="eyebrow">Real work</p>
+          <h2 id="work-heading">Projects shaped like case studies.</h2>
+          <p>These are the real concepts and websites I have designed so far. Click a project card to open the designer thinking behind it and browse the full image set for that project.</p>
+        </div>
+
+        <div class="showcase-cards real-work-grid" role="group" aria-label="Real work projects">
+          <article class="showcase-card real-work-card" data-case-study-card="akwaaba">
+            <span class="showcase-thumb real-work-thumb">
+              <img src="images/Akwaaba%20House/Akwaaba%20House.png" alt="Akwaaba House homepage concept" width="1275" height="1248" loading="lazy">
+            </span>
+            <div class="showcase-meta real-work-meta">
+              <small>Restaurant Brand Website</small>
+              <h3>Akwaaba House</h3>
+              <p>A luxury Ghanaian dining concept focused on warmth, atmosphere, and a smooth path into booking, menu discovery, and brand trust.</p>
+            </div>
+            <button type="button" class="real-work-card-trigger" data-case-study="akwaaba" aria-label="Open the Akwaaba House case study" aria-controls="real-work-detail" aria-expanded="false"></button>
+          </article>
+
+          <article class="showcase-card real-work-card" data-case-study-card="goldbar">
+            <span class="showcase-thumb real-work-thumb">
+              <img src="images/GoldBar%20Fitness/GoldBar%20Fitness%20Dark.png" alt="GoldBar Fitness homepage concept" width="1911" height="1218" loading="lazy">
+            </span>
+            <div class="showcase-meta real-work-meta">
+              <small>Fitness Brand + Product Ecosystem</small>
+              <h3>GoldBar Fitness</h3>
+              <p>A premium gym experience translated into web, mobile, commerce, pricing, and coach-driven conversion journeys.</p>
+            </div>
+            <button type="button" class="real-work-card-trigger" data-case-study="goldbar" aria-label="Open the GoldBar Fitness case study" aria-controls="real-work-detail" aria-expanded="false"></button>
+          </article>
+
+          <article class="showcase-card real-work-card" data-case-study-card="wealthwise">
+            <span class="showcase-thumb real-work-thumb">
+              <img src="images/wealthwise/wealthwise2.png" alt="WealthWise dashboard concept" width="1586" height="992" loading="lazy">
+            </span>
+            <div class="showcase-meta real-work-meta">
+              <small>Fintech Dashboard Concept</small>
+              <h3>WealthWise</h3>
+              <p>A finance platform built to make budgeting, savings, salary planning, and mortgage exploration feel clearer and less intimidating.</p>
+            </div>
+            <button type="button" class="real-work-card-trigger" data-case-study="wealthwise" aria-label="Open the WealthWise case study" aria-controls="real-work-detail" aria-expanded="false"></button>
+          </article>
+        </div>
+
+        <div class="real-work-detail" id="real-work-detail" hidden role="region" aria-labelledby="real-work-title">
+          <div class="real-work-layout">
+            <div class="real-work-copy-panel">
+              <div class="real-work-detail-top">
+                <p class="eyebrow">Case study breakdown</p>
+                <button type="button" class="real-work-detail-close" id="real-work-detail-close" aria-label="Hide case study breakdown">
+                  <i class="fa-solid fa-xmark"></i>
+                  <span>Hide</span>
+                </button>
+              </div>
+              <h3 id="real-work-title" tabindex="-1">Akwaaba House</h3>
+              <p id="real-work-summary">I shaped Akwaaba House to feel like the digital version of walking into a premium Ghanaian dining space: warm, intentional, polished, and easy to trust. The experience leans on deep green and gold tones, confident typography, and rich imagery so the atmosphere does as much work as the copy.</p>
+
+              <div class="real-work-chips" id="real-work-chips"></div>
+
+              <div class="real-work-notes">
+                <article class="real-work-note">
+                  <h4>What I wanted the user to feel</h4>
+                  <p id="real-work-feel">I wanted visitors to feel welcomed immediately, but also reassured that the brand was premium, culturally grounded, and worth exploring further.</p>
+                </article>
+
+                <article class="real-work-note">
+                  <h4>Why I designed it this way</h4>
+                  <p id="real-work-why">That is why the hero is spacious, the type is editorial, and the layout avoids clutter. For a hospitality product, mood and appetite matter, so I let the imagery breathe and gave the primary actions clear visual priority.</p>
+                </article>
+
+                <article class="real-work-note">
+                  <h4>UX decisions I prioritised</h4>
+                  <p id="real-work-decisions">I broke the journey into story, space, highlights, menu, people, and contact so users can either browse at leisure or move directly toward a booking decision. The structure balances emotional storytelling with conversion clarity.</p>
+                </article>
+              </div>
+            </div>
+
+            <div class="real-work-gallery-panel">
+              <button type="button" class="real-work-featured" id="real-work-featured" aria-label="Open selected project image larger">
+                <img id="real-work-featured-image" src="images/Akwaaba%20House/Akwaaba%20House.png" alt="Akwaaba House homepage hero" width="1275" height="1248" loading="lazy">
+                <span class="real-work-featured-copy">
+                  <strong id="real-work-featured-label">Homepage hero</strong>
+                  <span id="real-work-featured-caption">A premium first impression built around atmosphere, large type, and a fast route into menu exploration or booking.</span>
+                </span>
+              </button>
+
+              <div class="real-work-carousel-bar" id="real-work-thumbs" role="group" aria-label="Project image gallery controls">
+                <div class="real-work-carousel-stat">
+                  <span>Current screen</span>
+                  <strong id="real-work-carousel-label">Homepage hero</strong>
+                </div>
+                <div class="real-work-carousel-stat">
+                  <span>Image count</span>
+                  <strong id="real-work-image-counter" role="status" aria-live="polite" aria-atomic="true">1 / 7</strong>
+                </div>
+                <div class="real-work-carousel-controls">
+                  <button type="button" class="real-work-nav-btn" id="real-work-prev" aria-label="Show previous project image">
+                    <i class="fa-solid fa-arrow-left"></i>
+                  </button>
+                  <button type="button" class="real-work-nav-btn" id="real-work-next" aria-label="Show next project image">
+                    <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace-section reveal" id="workspace" data-nav="workspace" aria-labelledby="workspace-heading" tabindex="-1">
+      <div class="container workspace-copy">
+        <p class="eyebrow eyebrow-dark">Live websites</p>
+        <h2 id="workspace-heading">Open the live sites inside the live browser.</h2>
+        <p>On desktop, open each site inside the laptop browser. On mobile, use the direct project links for a full-size experience.</p>
+      </div>
+
+      <nav class="container mobile-project-links" aria-label="Live project websites">
+        <a class="mobile-project-link" href="https://akwaabahouse.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Open the Akwaaba House live website in a new tab">
+          <span class="mobile-project-icon" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
+          <span><strong>Akwaaba House</strong><small>Open live website</small></span>
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+        <a class="mobile-project-link" href="https://goldbarfitness.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Open the GoldBar Fitness live website in a new tab">
+          <span class="mobile-project-icon" aria-hidden="true"><i class="fa-solid fa-dumbbell"></i></span>
+          <span><strong>GoldBar Fitness</strong><small>Open live website</small></span>
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+        <a class="mobile-project-link" href="https://wealthwiselt.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Open the WealthWise live website in a new tab">
+          <span class="mobile-project-icon" aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span>
+          <span><strong>WealthWise</strong><small>Open live website</small></span>
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      </nav>
+
+      <div class="workspace-stage" id="workspace-stage">
+        <div class="workspace-sticky">
+          <div class="workspace-device" id="workspace-device">
+            <div class="workspace-laptop" id="workspace-laptop">
+              <div class="workspace-lid">
+                <div class="laptop-camera"></div>
+                <div class="workspace-screen">
+                  <div class="workspace-wallpaper"></div>
+
+                  <div class="workspace-boot" id="workspace-boot">
+                    <div class="workspace-boot-logo workspace-boot-logo--image">
+                      <img src="logo.png" alt="" class="site-logo-image" width="1254" height="1254">
+                    </div>
+                    <p class="workspace-boot-title">Live project browser</p>
+                    <p class="workspace-boot-help" id="workspace-boot-help">Turn on the device to browse live projects. Use Tab to move through the icons and Enter to open a site inside the live browser.</p>
+                    <button class="workspace-turn-on" id="workspace-turn-on" type="button" aria-describedby="workspace-boot-help" aria-pressed="false">Turn On</button>
+                  </div>
+                  <div class="workspace-desktop" id="workspace-desktop">
+                    <button type="button" aria-label="Open Akwaaba House live project" class="desktop-icon is-active" data-project="akwaaba">
+                      <span class="desktop-icon-mark"><i class="fa-solid fa-utensils"></i></span>
+                      <span class="desktop-icon-label">Akwaaba House</span>
+                    </button>
+                    <button type="button" aria-label="Open GoldBar Fitness live project" class="desktop-icon" data-project="goldbar">
+                      <span class="desktop-icon-mark"><i class="fa-solid fa-dumbbell"></i></span>
+                      <span class="desktop-icon-label">GoldBar Fitness</span>
+                    </button>
+                    <button type="button" aria-label="Open WealthWise live project" class="desktop-icon" data-project="wealthwise">
+                      <span class="desktop-icon-mark"><i class="fa-solid fa-chart-line"></i></span>
+                      <span class="desktop-icon-label">WealthWise</span>
+                    </button>
+                  </div>
+
+                  <div class="project-window" id="project-window" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="project-window-title">
+                    <div class="project-window-bar">
+                      <div class="traffic-lights traffic-lights--small">
+                        <button type="button" class="window-dot window-close" id="project-window-close" aria-label="Close project window"></button>
+                        <button type="button" class="window-dot window-minimize" id="project-window-minimize" aria-label="Minimize project window"></button>
+                        <button type="button" class="window-dot window-expand" id="project-window-expand" aria-label="Expand project window" aria-pressed="false"></button>
+                      </div>
+                      <div class="project-window-title" id="project-window-title">Akwaaba House</div>
+                      <div class="window-spacer"></div>
+                    </div>
+
+                    <div class="project-window-body" id="project-window-body">
+                      <div class="project-browser">
+                        <div class="project-browser-toolbar">
+                          <div class="project-browser-meta">
+                            <span class="window-kicker" id="project-window-kicker">Live project preview</span>
+                            <div class="project-browser-address" id="project-browser-address">https://akwaabahouse.netlify.app/</div>
+                          </div>
+                          <div class="project-browser-actions">
+                            <button type="button" class="browser-action" id="project-browser-reload">
+                              <i class="fa-solid fa-rotate-right"></i>
+                              <span>Reload</span>
+                            </button>
+                            <a class="browser-action browser-action--link" id="project-browser-open" href="https://akwaabahouse.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Open the Akwaaba House live website in a new tab">
+                              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                              <span>Open in new tab</span>
+                            </a>
+                          </div>
+                        </div>
+
+                        <div class="browser-frame-wrap">
+                          <div class="browser-overlay" id="browser-overlay" aria-live="polite">
+                            <div class="browser-overlay-card">
+                              <span class="browser-spinner" aria-hidden="true"></span>
+                              <strong id="browser-overlay-title">Loading live preview…</strong>
+                              <p id="browser-overlay-copy">If the preview takes too long or a site blocks embedding, use the button below to open the project directly.</p>
+                              <a class="browser-link" id="browser-fallback-link" href="https://akwaabahouse.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Open the Akwaaba House live website in a new tab">Open project directly</a>
+                            </div>
+                          </div>
+
+                          <iframe
+                            id="project-frame"
+                            class="project-frame"
+                            title="Live project preview"
+                            src="about:blank"
+                            loading="lazy"
+                            allow="fullscreen; clipboard-read; clipboard-write"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                          ></iframe>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="workspace-dock" id="workspace-dock">
+                    <button type="button" class="dock-item is-active" data-project="akwaaba" aria-label="Open Akwaaba House live project"><i class="fa-solid fa-utensils"></i></button>
+                    <button type="button" class="dock-item" data-project="goldbar" aria-label="Open GoldBar Fitness live project"><i class="fa-solid fa-dumbbell"></i></button>
+                    <button type="button" class="dock-item" data-project="wealthwise" aria-label="Open WealthWise live project"><i class="fa-solid fa-chart-line"></i></button>
+                    <button type="button" class="dock-item dock-item--power" id="workspace-power" aria-label="Turn off the live project browser" aria-pressed="false"><i class="fa-solid fa-power-off"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="workspace-base">
+                <div class="workspace-base-notch"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="process" class="process-section container reveal" data-nav="process" aria-labelledby="process-heading" tabindex="-1">
+      <div class="section-head"><p class="eyebrow">Process</p><h2 id="process-heading">How I want this portfolio to feel.</h2></div>
+      <div class="process-grid">
+        <article class="process-card"><span>01</span><h3>Intentional</h3><p>Each section should feel designed with purpose, not just stacked on the page.</p></article>
+        <article class="process-card"><span>02</span><h3>Technical</h3><p>I want my UI/UX transition to show that I understand how design meets implementation.</p></article>
+        <article class="process-card"><span>03</span><h3>Polished</h3><p>The experience should feel premium, responsive, and memorable from the first scroll.</p></article>
+      </div>
+    </section>
+
+    <section id="experience" class="experience-section container reveal" data-nav="experience" aria-labelledby="experience-heading" tabindex="-1">
+      <div class="section-head"><p class="eyebrow">Experience</p><h2 id="experience-heading">What I bring into UI/UX.</h2></div>
+      <div class="experience-grid">
+        <article class="experience-card"><h3>Enterprise Support Engineer</h3><p>I work closely with complex systems, technical issues, and user-facing problem solving. That gives me a strong product-awareness foundation.</p></article>
+        <article class="experience-card"><h3>Freelance Web Work</h3><p>I have already built websites for real audiences, which gives me practical perspective beyond purely visual design exercises.</p></article>
+        <article class="experience-card"><h3>Next Step</h3><p>This portfolio is now being shaped to position me more clearly for UI/UX and product design opportunities.</p></article>
+      </div>
+    </section>
+
+    <section id="contact" class="contact-section reveal" data-nav="contact" aria-labelledby="contact-heading" tabindex="-1">
+      <div class="container contact-shell">
+        <div class="contact-head"><h2 id="contact-heading">Start building now.</h2><p>It’s free to get started. Try it out below.</p></div>
+        <div class="contact-panel">
+          <label class="contact-label" for="contact-message">What do you want to create together?</label>
+          <form class="contact-form" action="mailto:asamoah.leslie@gmail.com" method="post" enctype="text/plain">
+            <p id="contact-instructions" class="sr-only">Submitting opens your default email application with this message.</p>
+            <textarea id="contact-message" name="message" rows="6" placeholder="Tell me about the website, product, redesign, or collaboration you have in mind." aria-describedby="contact-instructions" required></textarea>
+            <div class="contact-bar"><div class="contact-options"><span><i class="fa-regular fa-object-group"></i> Design + Build</span><span><i class="fa-regular fa-envelope"></i> Email Contact</span></div><button class="create-btn" type="submit">Create</button></div>
+            <p id="form-success" class="form-success" role="status" aria-live="polite" hidden>Your email app should open with your message.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-word" aria-hidden="true">LESLIE</div>
+    <div class="container footer-bar">
+      <div class="footer-left">
+        <p>&copy; 2026 Leslie Tannor</p>
+        <a href="pages/design-process.html">Design Process</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer-right">
+        <a href="mailto:asamoah.leslie@gmail.com" aria-label="Email Leslie"><i class="fa-regular fa-envelope" aria-hidden="true"></i></a>
+        <a href="#about" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <dialog class="gallery-lightbox" id="gallery-lightbox" aria-labelledby="gallery-lightbox-caption">
+    <button type="button" class="gallery-lightbox-close" id="gallery-lightbox-close" aria-label="Close expanded project image">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+    <figure class="gallery-lightbox-figure">
+      <img id="gallery-lightbox-image" src="images/Akwaaba%20House/Akwaaba%20House.png" alt="Akwaaba House homepage hero" width="1275" height="1248">
+      <figcaption id="gallery-lightbox-caption" tabindex="-1"></figcaption>
+    </figure>
+    <div class="gallery-lightbox-controls" role="group" aria-label="Expanded project image controls">
+      <button type="button" class="real-work-nav-btn" id="gallery-lightbox-prev" aria-label="Show previous project image"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+      <button type="button" class="real-work-nav-btn" id="gallery-lightbox-next" aria-label="Show next project image"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </dialog>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>

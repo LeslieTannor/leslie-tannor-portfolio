@@ -1,0 +1,31 @@
+# Secrets and local environment files
+.env
+.env.*
+
+# Dependency and generated output folders
+node_modules/
+dist/
+build/
+reports/
+
+# Logs, archives, backups, and operating-system files
+*.log
+*.zip
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Local editor and agent state
+.vscode/
+.idea/
+.codex/
+.agents/
+
+# Exact duplicate exports retained locally; referenced copies live in images/
+/Tablet.jpg
+/TabletHero.jpg
+/TabletHope.jpg
+
+# Layered working file; the website uses the exported images above
+/images/Tablet.psd
