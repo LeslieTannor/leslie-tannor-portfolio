@@ -307,6 +307,13 @@ try {
     initialCaseHidden: document.querySelector('#real-work-detail').hidden,
     footerArtCount:document.querySelectorAll('.footer-art-image').length,
     themeControlCount:document.querySelectorAll('.floating-tools .tool-btn').length,
+    showcaseAutoplayCount:document.querySelectorAll('#showcase-autoplay').length,
+    defaultTheme:document.documentElement.dataset.theme,
+    bodyBackground:getComputedStyle(document.body).backgroundColor,
+    heroBackground:getComputedStyle(document.querySelector('.hero-section')).backgroundColor,
+    transitionBackground:getComputedStyle(document.querySelector('.transition-section')).backgroundColor,
+    showcaseBackground:getComputedStyle(document.querySelector('.showcase-section')).backgroundImage,
+    workspaceBackground:getComputedStyle(document.querySelector('.workspace-section')).backgroundImage,
     marqueeGroups: [...document.querySelectorAll('.marquee-group')].map(group => group.getBoundingClientRect().width),
     marqueeGap: Math.abs(document.querySelectorAll('.marquee-group')[1].getBoundingClientRect().left - document.querySelectorAll('.marquee-group')[0].getBoundingClientRect().right),
     navHrefs: [...document.querySelectorAll('#nav-menu a')].map(link => link.getAttribute('href'))
@@ -322,6 +329,10 @@ try {
   Assert-Audit (@($structure.localSheetRules).Count -eq 1 -and $structure.localSheetRules[0] -gt 0) 'The local stylesheet did not parse into CSS rules.'
   Assert-Audit ([bool]$structure.initialCaseHidden) 'Case-study detail is visible before a project is selected.'
   Assert-Audit ($structure.footerArtCount -eq 2 -and $structure.themeControlCount -eq 1) 'Footer art or the single theme control is incorrect.'
+  Assert-Audit ($structure.showcaseAutoplayCount -eq 1) 'The automatic project gallery pause/resume control is missing.'
+  Assert-Audit ($structure.defaultTheme -eq 'light' -and $structure.bodyBackground -eq 'rgb(255, 255, 255)') 'The portfolio does not open on the requested white Apple-style canvas.'
+  Assert-Audit ($structure.heroBackground -eq 'rgb(245, 245, 247)' -and $structure.transitionBackground -eq 'rgb(245, 245, 247)') 'The hero and real-projects narrative do not share the requested Apple neutral-grey band.'
+  Assert-Audit ($structure.showcaseBackground -match '223, 243, 255' -and $structure.workspaceBackground -match '223, 243, 255') 'The project showcase and laptop workspace do not share the pale MacBook-Air blue palette.'
   Assert-Audit ([math]::Abs($structure.marqueeGroups[0] - $structure.marqueeGroups[1]) -lt 1) 'Ticker duplicate groups have different widths.'
   Assert-Audit ($structure.marqueeGap -lt 1) "Ticker has a visible inter-group gap of $($structure.marqueeGap) px."
   Assert-Audit (($structure.navHrefs -join ',') -eq '#workspace,#work,#process,#experience,#contact') "Navigation href order or targets are incorrect: $($structure.navHrefs -join ',')."
@@ -332,12 +343,15 @@ try {
   const marquee = document.querySelector('#marquee-toggle');
   const initialTheme = document.documentElement.dataset.theme;
   theme.click();
-  const themeChanged = document.documentElement.dataset.theme !== initialTheme && theme.getAttribute('aria-pressed') === 'true';
+  const changedTheme = document.documentElement.dataset.theme;
+  const themeChanged = changedTheme !== initialTheme && theme.getAttribute('aria-pressed') === String(changedTheme === 'light');
+  if (document.documentElement.dataset.theme !== 'light') theme.click();
   marquee.click();
   const marqueePaused = marquee.getAttribute('aria-pressed') === 'true' && document.querySelector('.marquee-track').classList.contains('is-paused');
   marquee.click();
   return {
     themeChanged,
+    finalTheme:document.documentElement.dataset.theme,
     marqueePaused,
     cardObjectFit:[...document.querySelectorAll('.real-work-thumb img')].map(image => getComputedStyle(image).objectFit),
     featuredObjectFit:getComputedStyle(document.querySelector('#real-work-featured-image')).objectFit,
@@ -348,7 +362,7 @@ try {
   };
 })()
 '@
-  Assert-Audit ($toggles.themeChanged -and $toggles.marqueePaused) 'Theme or scrolling-ticker controls did not update their accessible state.'
+  Assert-Audit ($toggles.themeChanged -and $toggles.finalTheme -eq 'light' -and $toggles.marqueePaused) 'Theme or scrolling-ticker controls did not update their accessible state.'
   Assert-Audit (@($toggles.cardObjectFit | Where-Object { $_ -ne 'contain' }).Count -eq 0 -and $toggles.featuredObjectFit -eq 'contain') 'One or more project images use a cropping object-fit value.'
   Assert-Audit (-not [string]::IsNullOrWhiteSpace($toggles.contactLabel) -and $toggles.contactRequired) 'Contact textarea label or required state is missing.'
   Assert-Audit ($toggles.heroBootColor -eq 'rgb(246, 247, 242)' -and $toggles.workspaceBootColor -eq 'rgb(244, 247, 251)') 'Fixed dark-device typography loses contrast in light mode.'
@@ -472,6 +486,11 @@ try {
   const position = document.querySelector('#showcase-position');
   const previous = document.querySelector('#showcase-prev');
   const next = document.querySelector('#showcase-next');
+  const autoplay = document.querySelector('#showcase-autoplay');
+  if (autoplay.getAttribute('aria-pressed') !== 'true') autoplay.click();
+  previous.click();
+  previous.click();
+  await new Promise(resolve => setTimeout(resolve, 600));
   const initial = {
     position:position.textContent,
     current:track.querySelector('.is-current')?.dataset.caseStudyCard,
@@ -489,13 +508,25 @@ try {
   previous.click();
   previous.click();
   await new Promise(resolve => setTimeout(resolve, 600));
-  return {initial, second, third};
+  if (autoplay.getAttribute('aria-pressed') === 'true') autoplay.click();
+  track.scrollIntoView({block:'center', behavior:'instant'});
+  await new Promise(resolve => setTimeout(resolve, 150));
+  const beforeAuto = position.textContent;
+  await new Promise(resolve => setTimeout(resolve, 4400));
+  const afterAuto = position.textContent;
+  autoplay.click();
+  const autoplayPaused = autoplay.getAttribute('aria-pressed') === 'true' && autoplay.getAttribute('aria-label').includes('Resume');
+  previous.click();
+  previous.click();
+  await new Promise(resolve => setTimeout(resolve, 600));
+  return {initial, second, third, beforeAuto, afterAuto, autoplayPaused};
 })()
 '@
   Assert-Audit ($showcase.initial.position -eq '01 / 03' -and $showcase.initial.current -eq 'akwaaba' -and $showcase.initial.previousDisabled) 'Horizontal project showcase did not initialise on the first project.'
   Assert-Audit ($showcase.initial.scrollable -and $showcase.initial.cardViewportRatio -ge .7 -and @($showcase.initial.backgrounds | Select-Object -Unique).Count -eq 3) 'Project showcase is not full-width, horizontally scrollable, or visually distinct.'
   Assert-Audit ($showcase.second.position -eq '02 / 03' -and $showcase.second.current -eq 'goldbar' -and $showcase.second.scrollLeft -gt 0) 'Project showcase next control did not move to GoldBar Fitness.'
   Assert-Audit ($showcase.third.position -eq '03 / 03' -and $showcase.third.current -eq 'wealthwise' -and $showcase.third.nextDisabled) 'Project showcase keyboard navigation did not reach WealthWise.'
+  Assert-Audit ($showcase.beforeAuto -eq '01 / 03' -and $showcase.afterAuto -eq '02 / 03' -and $showcase.autoplayPaused) 'Project showcase did not auto-advance left-to-right or expose a working pause/resume control.'
 
   $caseResult = Invoke-PageScript -Expression @'
 (async () => {
@@ -615,7 +646,7 @@ try {
   document.querySelector('#project-window-close').click();
   output.closeFocus = document.activeElement.dataset.project;
   document.querySelector('#workspace-power').click();
-  await new Promise(resolve => setTimeout(resolve, 180));
+  await new Promise(resolve => setTimeout(resolve, 450));
   output.poweredOff = !device.classList.contains('is-powered') && !stage.classList.contains('is-revealed') && device.getAttribute('aria-hidden') === 'true' && device.inert && reveal.getAttribute('aria-expanded') === 'false' && document.activeElement.id === 'workspace-reveal' && document.querySelector('#project-frame').getAttribute('src') === 'about:blank';
   return output;
 })()
@@ -756,6 +787,7 @@ try {
     alternateFooterArtDisplay:getComputedStyle(document.querySelector('.footer-art-image--direction')).display,
     marqueeAnimation:getComputedStyle(document.querySelector('.marquee-track')).animationName,
     duplicateTickerDisplay:getComputedStyle(document.querySelector('.marquee-group[aria-hidden="true"]')).display,
+    showcaseAutoplayPressed:document.querySelector('#showcase-autoplay').getAttribute('aria-pressed'),
     hiddenReveals:[...document.querySelectorAll('.reveal')].filter(element => Number(getComputedStyle(element).opacity) < .99).length,
     workspaceInitialHeight:stage.getBoundingClientRect().height,
     workspaceInitialHidden:device.getAttribute('aria-hidden')
@@ -769,6 +801,7 @@ try {
 '@
   Assert-Audit ($reducedMotion.matches -and $reducedMotion.heroStickyPosition -eq 'relative') 'Reduced-motion preference did not disable the sticky cinematic hero.'
   Assert-Audit ($reducedMotion.footerArtAnimation -eq 'none' -and $reducedMotion.alternateFooterArtDisplay -eq 'none' -and $reducedMotion.marqueeAnimation -eq 'none' -and $reducedMotion.duplicateTickerDisplay -eq 'none') 'Reduced-motion preference left decorative or looping motion active.'
+  Assert-Audit ($reducedMotion.showcaseAutoplayPressed -eq 'true') 'Reduced-motion preference did not pause the automatic project gallery.'
   Assert-Audit ($reducedMotion.workspaceInitialHeight -eq 0 -and $reducedMotion.workspaceInitialHidden -eq 'true' -and $reducedMotion.workspaceRevealed) 'Reduced-motion mode exposes an empty laptop stage or prevents the explicit reveal.'
   Assert-Audit ($reducedMotion.hiddenReveals -eq 0 -and @($reducedMotion.errors).Count -eq 0) 'Reduced-motion mode hides content or emitted a runtime error.'
   [void](Invoke-Cdp -Method 'Emulation.setEmulatedMedia' -Params @{ features = @(@{ name = 'prefers-reduced-motion'; value = 'no-preference' }) })

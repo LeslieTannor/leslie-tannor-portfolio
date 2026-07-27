@@ -2,13 +2,14 @@
   'use strict';
 
 const root = document.documentElement;
-const THEME_KEY = 'leslie-theme-clean-v16';
+const THEME_KEY = 'leslie-theme-clean-v17';
 const isBrowserAudit = new URLSearchParams(window.location.search).has('browser-audit');
 
 const qs = (selector, scope = document) => scope.querySelector(selector);
 const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
 const themeToggle = qs('#theme-toggle');
+const themeColor = qs('meta[name="theme-color"]');
 const navToggle = qs('#nav-toggle');
 const navMenu = qs('#nav-menu');
 const uiStatus = qs('#ui-status');
@@ -62,6 +63,7 @@ const showcaseTrack = qs('#showcase-track');
 const showcaseCards = qsa('.real-work-card', showcaseTrack || document);
 const showcasePrev = qs('#showcase-prev');
 const showcaseNext = qs('#showcase-next');
+const showcaseAutoplay = qs('#showcase-autoplay');
 const showcasePosition = qs('#showcase-position');
 const showcaseProgress = qs('#showcase-progress');
 const realWorkType = qs('#real-work-type');
@@ -105,6 +107,11 @@ let lightboxReturnFocus = null;
 let projectReturnFocus = null;
 let showcaseIndex = 0;
 let showcaseScrollTicking = false;
+let showcaseAutoplayTimer = null;
+let showcaseAutoplayPaused = false;
+let showcaseInteractionPaused = false;
+let showcasePointerActive = false;
+let showcaseInView = false;
 let scrollTicking = false;
 let activeNavKey = null;
 let motionEnhanced = false;
@@ -112,6 +119,7 @@ let motionEnhanced = false;
 const tabletModeQuery = window.matchMedia('(max-width: 820px)');
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 const isTabletMode = () => tabletModeQuery.matches;
+const SHOWCASE_AUTOPLAY_DELAY = 4200;
 
 const safeStorage = {
   get(key, fallback) {
@@ -408,6 +416,7 @@ function updateToggleStates() {
 function setTheme(theme, { announceChange = true } = {}) {
   root.setAttribute('data-theme', theme);
   safeStorage.set(THEME_KEY, theme);
+  themeColor?.setAttribute('content', theme === 'light' ? '#ffffff' : '#080b10');
 
   const icon = themeToggle?.querySelector('i');
   if (icon) {
@@ -626,7 +635,7 @@ function setLauncherState(projectKey) {
   });
 }
 
-function setShowcaseIndex(index, { scroll = false, announceChange = false } = {}) {
+function setShowcaseIndex(index, { scroll = false, announceChange = false, behavior } = {}) {
   if (!showcaseTrack || !showcaseCards.length) return;
 
   const nextIndex = clamp(index, 0, showcaseCards.length - 1);
@@ -645,10 +654,64 @@ function setShowcaseIndex(index, { scroll = false, announceChange = false } = {}
   if (scroll) {
     const card = showcaseCards[showcaseIndex];
     const targetLeft = card.offsetLeft - (showcaseTrack.clientWidth - card.offsetWidth) / 2;
-    showcaseTrack.scrollTo({ left: targetLeft, behavior: reducedMotionQuery.matches ? 'auto' : 'smooth' });
+    showcaseTrack.scrollTo({ left: targetLeft, behavior: behavior || (reducedMotionQuery.matches ? 'auto' : 'smooth') });
   }
 
   if (changed && announceChange) announce(`${caseStudies[showcaseCards[showcaseIndex].dataset.caseStudyCard]?.title || 'Project'} selected`);
+}
+
+function clearShowcaseAutoplayTimer() {
+  if (!showcaseAutoplayTimer) return;
+  window.clearTimeout(showcaseAutoplayTimer);
+  showcaseAutoplayTimer = null;
+}
+
+function isShowcaseAutoplayBlocked() {
+  return showcaseAutoplayPaused || showcaseInteractionPaused || reducedMotionQuery.matches || document.hidden || !showcaseInView;
+}
+
+function updateShowcaseAutoplayControl() {
+  if (!showcaseAutoplay) return;
+  const paused = showcaseAutoplayPaused || reducedMotionQuery.matches;
+  const label = paused ? 'Resume automatic project movement' : 'Pause automatic project movement';
+  showcaseAutoplay.setAttribute('aria-pressed', String(paused));
+  showcaseAutoplay.setAttribute('aria-label', label);
+  showcaseAutoplay.setAttribute('title', label);
+  const icon = showcaseAutoplay.querySelector('i');
+  if (icon) icon.className = paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+}
+
+function scheduleShowcaseAutoplay() {
+  clearShowcaseAutoplayTimer();
+  if (!showcaseCards.length || isShowcaseAutoplayBlocked()) return;
+
+  showcaseAutoplayTimer = window.setTimeout(() => {
+    showcaseAutoplayTimer = null;
+    const wrapping = showcaseIndex === showcaseCards.length - 1;
+    setShowcaseIndex(wrapping ? 0 : showcaseIndex + 1, {
+      scroll: true,
+      behavior: wrapping ? 'auto' : 'smooth'
+    });
+    scheduleShowcaseAutoplay();
+  }, SHOWCASE_AUTOPLAY_DELAY);
+}
+
+function restartShowcaseAutoplay() {
+  clearShowcaseAutoplayTimer();
+  scheduleShowcaseAutoplay();
+}
+
+function setShowcaseAutoplayPaused(paused, { announceChange = true } = {}) {
+  showcaseAutoplayPaused = paused;
+  updateShowcaseAutoplayControl();
+  restartShowcaseAutoplay();
+  if (announceChange) announce(paused ? 'Automatic project movement paused' : 'Automatic project movement resumed');
+}
+
+function updateShowcaseInteractionState() {
+  if (!showcaseTrack) return;
+  showcaseInteractionPaused = showcasePointerActive || showcaseTrack.matches(':hover') || showcaseTrack.contains(document.activeElement);
+  restartShowcaseAutoplay();
 }
 
 function updateShowcaseFromScroll() {
@@ -667,8 +730,23 @@ function setupShowcaseCarousel() {
   if (!showcaseTrack || !showcaseCards.length) return;
 
   setShowcaseIndex(0);
-  showcasePrev?.addEventListener('click', () => setShowcaseIndex(showcaseIndex - 1, { scroll: true, announceChange: true }));
-  showcaseNext?.addEventListener('click', () => setShowcaseIndex(showcaseIndex + 1, { scroll: true, announceChange: true }));
+  updateShowcaseAutoplayControl();
+  showcasePrev?.addEventListener('click', () => {
+    setShowcaseIndex(showcaseIndex - 1, { scroll: true, announceChange: true });
+    restartShowcaseAutoplay();
+  });
+  showcaseNext?.addEventListener('click', () => {
+    setShowcaseIndex(showcaseIndex + 1, { scroll: true, announceChange: true });
+    restartShowcaseAutoplay();
+  });
+  showcaseAutoplay?.addEventListener('click', () => {
+    if (reducedMotionQuery.matches) {
+      updateShowcaseAutoplayControl();
+      announce('Automatic project movement remains paused because reduced motion is enabled');
+      return;
+    }
+    setShowcaseAutoplayPaused(!showcaseAutoplayPaused);
+  });
 
   showcaseTrack.addEventListener('scroll', () => {
     if (showcaseScrollTicking) return;
@@ -683,11 +761,40 @@ function setupShowcaseCarousel() {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
     setShowcaseIndex(showcaseIndex + (event.key === 'ArrowRight' ? 1 : -1), { scroll: true, announceChange: true });
+    restartShowcaseAutoplay();
   });
 
   caseStudyCards.forEach((trigger, index) => {
     trigger.addEventListener('focus', () => setShowcaseIndex(index, { scroll: true }));
   });
+
+  showcaseTrack.addEventListener('pointerenter', updateShowcaseInteractionState);
+  showcaseTrack.addEventListener('pointerleave', updateShowcaseInteractionState);
+  showcaseTrack.addEventListener('pointerdown', () => {
+    showcasePointerActive = true;
+    updateShowcaseInteractionState();
+  });
+  showcaseTrack.addEventListener('pointerup', () => {
+    showcasePointerActive = false;
+    updateShowcaseInteractionState();
+  });
+  showcaseTrack.addEventListener('pointercancel', () => {
+    showcasePointerActive = false;
+    updateShowcaseInteractionState();
+  });
+  showcaseTrack.addEventListener('focusin', updateShowcaseInteractionState);
+  showcaseTrack.addEventListener('focusout', () => window.requestAnimationFrame(updateShowcaseInteractionState));
+
+  if ('IntersectionObserver' in window) {
+    const showcaseObserver = new IntersectionObserver(([entry]) => {
+      showcaseInView = Boolean(entry?.isIntersecting);
+      restartShowcaseAutoplay();
+    }, { threshold: .2 });
+    showcaseObserver.observe(showcaseTrack);
+  } else {
+    showcaseInView = true;
+    scheduleShowcaseAutoplay();
+  }
 }
 
 
@@ -1235,7 +1342,7 @@ function requestScrollUpdate() {
 }
 
 function init() {
-  const storedTheme = safeStorage.get(THEME_KEY, 'dark');
+  const storedTheme = safeStorage.get(THEME_KEY, 'light');
 
   setTheme(storedTheme, { announceChange: false });
   showHeroSlide(0);
@@ -1302,12 +1409,19 @@ function init() {
       motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
       setMarqueePaused(false, { announceChange: false });
     }
+    updateShowcaseAutoplayControl();
+    restartShowcaseAutoplay();
     updateHero();
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) stopHeroSlideshow();
-    else updateHero();
+    if (document.hidden) {
+      stopHeroSlideshow();
+      clearShowcaseAutoplayTimer();
+    } else {
+      updateHero();
+      scheduleShowcaseAutoplay();
+    }
   });
 }
 
