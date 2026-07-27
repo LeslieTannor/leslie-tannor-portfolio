@@ -233,6 +233,8 @@ try {
     return rect.right > innerWidth + 1 || rect.left < -1;
   }).slice(0, 8).map(element => element.id || element.className || element.tagName);
   const stage = document.querySelector('.workspace-stage');
+  const device = document.querySelector('#workspace-device');
+  const reveal = document.querySelector('#workspace-reveal');
   const mobileLinks = document.querySelector('.mobile-project-links');
   const footer = document.querySelector('.footer-bar').getBoundingClientRect();
   return {
@@ -240,6 +242,10 @@ try {
     clientWidth: root.clientWidth,
     overflowers,
     stageDisplay: getComputedStyle(stage).display,
+    stageRevealed: stage.classList.contains('is-revealed'),
+    deviceHidden: device.getAttribute('aria-hidden'),
+    deviceInert: device.inert,
+    revealDisplay: getComputedStyle(reveal).display,
     mobileLinksDisplay: getComputedStyle(mobileLinks).display,
     footerLeft: footer.left,
     footerRight: footer.right,
@@ -254,9 +260,11 @@ try {
 
     if ($width -le 820) {
       Assert-Audit ($layout.stageDisplay -eq 'none') "$width px viewport still displays the iframe device."
+      Assert-Audit ($layout.revealDisplay -eq 'none') "$width px viewport still displays the desktop reveal control."
       Assert-Audit ($layout.mobileLinksDisplay -ne 'none') "$width px viewport does not display direct live-project links."
     } else {
       Assert-Audit ($layout.stageDisplay -ne 'none') "$width px viewport hides the desktop laptop presentation."
+      Assert-Audit (-not $layout.stageRevealed -and $layout.deviceHidden -eq 'true' -and $layout.deviceInert -and $layout.revealDisplay -ne 'none') "$width px viewport does not keep the laptop concealed behind its reveal control."
       Assert-Audit ($layout.mobileLinksDisplay -eq 'none') "$width px viewport displays mobile live-project links."
     }
 
@@ -334,13 +342,17 @@ try {
     cardObjectFit:[...document.querySelectorAll('.real-work-thumb img')].map(image => getComputedStyle(image).objectFit),
     featuredObjectFit:getComputedStyle(document.querySelector('#real-work-featured-image')).objectFit,
     contactLabel:document.querySelector('label[for="contact-message"]')?.textContent.trim(),
-    contactRequired:document.querySelector('#contact-message').required
+    contactRequired:document.querySelector('#contact-message').required,
+    heroBootColor:getComputedStyle(document.querySelector('.hero-boot-state p')).color,
+    workspaceBootColor:getComputedStyle(document.querySelector('.workspace-boot-title')).color
   };
 })()
 '@
   Assert-Audit ($toggles.themeChanged -and $toggles.marqueePaused) 'Theme or scrolling-ticker controls did not update their accessible state.'
   Assert-Audit (@($toggles.cardObjectFit | Where-Object { $_ -ne 'contain' }).Count -eq 0 -and $toggles.featuredObjectFit -eq 'contain') 'One or more project images use a cropping object-fit value.'
   Assert-Audit (-not [string]::IsNullOrWhiteSpace($toggles.contactLabel) -and $toggles.contactRequired) 'Contact textarea label or required state is missing.'
+  Assert-Audit ($toggles.heroBootColor -eq 'rgb(246, 247, 242)' -and $toggles.workspaceBootColor -eq 'rgb(244, 247, 251)') 'Fixed dark-device typography loses contrast in light mode.'
+  Save-CurrentScreenshot -Name 'viewport-1280-light'
   $auditSummary.Add('Desktop structure and persistent controls completed.')
 
   $contactForm = Invoke-PageScript -Expression @'
@@ -403,6 +415,10 @@ try {
   $auditSummary.Add("Observed local-load diagnostics at 1280 px: FCP=$($performance.fcp) ms, DOMContentLoaded=$($performance.domContentLoaded) ms, load=$($performance.load) ms, CLS=$($performance.cls), long tasks=$($performance.longTasks) ms, DOM nodes=$($performance.domNodes), resources=$($performance.resources), transferred bytes=$($performance.transferred).")
   Assert-Audit ($performance.cls -lt 0.1) "Observed cumulative layout shift is $($performance.cls), above the 0.1 audit threshold."
 
+  [void](Invoke-PageScript -Expression "document.documentElement.style.scrollBehavior='auto'; document.querySelector('footer').scrollIntoView({behavior:'instant', block:'start'}); true")
+  Start-Sleep -Milliseconds 300
+  Save-CurrentScreenshot -Name 'viewport-1280-footer-light'
+
   $roles = Test-AccessibilityTree -Context 'Desktop page'
   foreach ($requiredRole in @('banner', 'navigation', 'main', 'contentinfo')) {
     Assert-Audit ($roles -contains $requiredRole) "Accessibility tree is missing the '$requiredRole' landmark."
@@ -448,6 +464,38 @@ try {
       Assert-Audit (@($state.current).Count -eq 1 -and $state.current[0] -eq $state.expected) "aria-current is wrong for $($state.target)."
     }
   }
+
+  $showcase = Invoke-PageScript -Expression @'
+(async () => {
+  const track = document.querySelector('#showcase-track');
+  const cards = [...track.querySelectorAll('.real-work-card')];
+  const position = document.querySelector('#showcase-position');
+  const previous = document.querySelector('#showcase-prev');
+  const next = document.querySelector('#showcase-next');
+  const initial = {
+    position:position.textContent,
+    current:track.querySelector('.is-current')?.dataset.caseStudyCard,
+    previousDisabled:previous.disabled,
+    scrollable:track.scrollWidth > track.clientWidth,
+    cardViewportRatio:Number((cards[0].getBoundingClientRect().width / innerWidth).toFixed(2)),
+    backgrounds:cards.map(card => getComputedStyle(card).backgroundImage)
+  };
+  next.click();
+  await new Promise(resolve => setTimeout(resolve, 600));
+  const second = {position:position.textContent, current:track.querySelector('.is-current')?.dataset.caseStudyCard, scrollLeft:track.scrollLeft};
+  track.dispatchEvent(new KeyboardEvent('keydown', {key:'ArrowRight', bubbles:true}));
+  await new Promise(resolve => setTimeout(resolve, 600));
+  const third = {position:position.textContent, current:track.querySelector('.is-current')?.dataset.caseStudyCard, nextDisabled:next.disabled};
+  previous.click();
+  previous.click();
+  await new Promise(resolve => setTimeout(resolve, 600));
+  return {initial, second, third};
+})()
+'@
+  Assert-Audit ($showcase.initial.position -eq '01 / 03' -and $showcase.initial.current -eq 'akwaaba' -and $showcase.initial.previousDisabled) 'Horizontal project showcase did not initialise on the first project.'
+  Assert-Audit ($showcase.initial.scrollable -and $showcase.initial.cardViewportRatio -ge .7 -and @($showcase.initial.backgrounds | Select-Object -Unique).Count -eq 3) 'Project showcase is not full-width, horizontally scrollable, or visually distinct.'
+  Assert-Audit ($showcase.second.position -eq '02 / 03' -and $showcase.second.current -eq 'goldbar' -and $showcase.second.scrollLeft -gt 0) 'Project showcase next control did not move to GoldBar Fitness.'
+  Assert-Audit ($showcase.third.position -eq '03 / 03' -and $showcase.third.current -eq 'wealthwise' -and $showcase.third.nextDisabled) 'Project showcase keyboard navigation did not reach WealthWise.'
 
   $caseResult = Invoke-PageScript -Expression @'
 (async () => {
@@ -514,16 +562,31 @@ try {
   $workspace = Invoke-PageScript -Expression @'
 (async () => {
   const stage = document.querySelector('#workspace-stage');
-  const total = Math.max(stage.offsetHeight - innerHeight, 1);
-  const targetY = stage.offsetTop + total * .45;
+  const device = document.querySelector('#workspace-device');
+  const reveal = document.querySelector('#workspace-reveal');
   document.documentElement.style.scrollBehavior = 'auto';
-  window.scrollTo({top:targetY, behavior:'instant'});
-  const immediateY = window.scrollY;
-  window.dispatchEvent(new Event('scroll'));
-  await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 120)));
-  const ready = document.querySelector('#workspace-device').classList.contains('is-ready');
-  document.querySelector('#workspace-turn-on').click();
-  const output = {ready, powered:document.querySelector('#workspace-device').classList.contains('is-powered'), targetY, immediateY, scrollY, scrollBehavior:getComputedStyle(document.documentElement).scrollBehavior, stageTop:stage.getBoundingClientRect().top, stageOffsetTop:stage.offsetTop, offsetParent:stage.offsetParent?.className || stage.offsetParent?.tagName, projects:{}};
+  const initial = {
+    revealed:stage.classList.contains('is-revealed'),
+    hidden:device.getAttribute('aria-hidden'),
+    inert:device.inert,
+    expanded:reveal.getAttribute('aria-expanded')
+  };
+  reveal.click();
+  await new Promise(resolve => setTimeout(resolve, 1250));
+  const ready = device.classList.contains('is-ready');
+  const laptopRect = document.querySelector('#workspace-laptop').getBoundingClientRect();
+  const output = {
+    initial,
+    ready,
+    powered:device.classList.contains('is-powered'),
+    revealed:stage.classList.contains('is-revealed'),
+    hidden:device.getAttribute('aria-hidden'),
+    inert:device.inert,
+    expanded:reveal.getAttribute('aria-expanded'),
+    laptopRect:{top:laptopRect.top, bottom:laptopRect.bottom, height:laptopRect.height, viewportHeight:innerHeight},
+    closeLabel:document.querySelector('#workspace-power span')?.textContent.trim(),
+    projects:{}
+  };
   for (const key of ['akwaaba','goldbar','wealthwise']) {
     const launcher = document.querySelector(`.desktop-icon[data-project="${key}"]`);
     launcher.click();
@@ -533,7 +596,12 @@ try {
       frame: document.querySelector('#project-frame').dataset.requestedSrc || document.querySelector('#project-frame').getAttribute('src'),
       open: document.querySelector('#project-browser-open').href,
       frameTitle: document.querySelector('#project-frame').title,
-      visible: document.querySelector('#project-window').classList.contains('is-visible')
+      visible: document.querySelector('#project-window').classList.contains('is-visible'),
+      closeWorkspaceVisible:(() => {
+        const control = document.querySelector('#workspace-power');
+        const style = getComputedStyle(control);
+        return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > .99;
+      })()
     };
     document.querySelector('#project-window-close').click();
   }
@@ -547,11 +615,14 @@ try {
   document.querySelector('#project-window-close').click();
   output.closeFocus = document.activeElement.dataset.project;
   document.querySelector('#workspace-power').click();
-  output.poweredOff = !document.querySelector('#workspace-device').classList.contains('is-powered') && document.activeElement.id === 'workspace-turn-on';
+  await new Promise(resolve => setTimeout(resolve, 180));
+  output.poweredOff = !device.classList.contains('is-powered') && !stage.classList.contains('is-revealed') && device.getAttribute('aria-hidden') === 'true' && device.inert && reveal.getAttribute('aria-expanded') === 'false' && document.activeElement.id === 'workspace-reveal' && document.querySelector('#project-frame').getAttribute('src') === 'about:blank';
   return output;
 })()
 '@
-  Assert-Audit ($workspace.ready -and $workspace.powered) "Desktop laptop did not become ready and power on: $($workspace | ConvertTo-Json -Compress -Depth 3)."
+  Assert-Audit (-not $workspace.initial.revealed -and $workspace.initial.hidden -eq 'true' -and $workspace.initial.inert -and $workspace.initial.expanded -eq 'false') 'Desktop laptop is not concealed before the reveal action.'
+  Assert-Audit ($workspace.ready -and $workspace.powered -and $workspace.revealed -and $workspace.hidden -eq 'false' -and -not $workspace.inert -and $workspace.expanded -eq 'true') "Desktop laptop did not reveal, open, and power on: $($workspace | ConvertTo-Json -Compress -Depth 3)."
+  Assert-Audit ($workspace.laptopRect.top -ge -1 -and $workspace.laptopRect.bottom -le ($workspace.laptopRect.viewportHeight + 1) -and $workspace.closeLabel -eq 'Close workspace') "Revealed laptop is clipped or its close action is ambiguous: $($workspace.laptopRect | ConvertTo-Json -Compress)."
   $expectedProjects = @{
     akwaaba = @{ Title = 'Akwaaba House'; Url = 'https://akwaabahouse.netlify.app/' }
     goldbar = @{ Title = 'GoldBar Fitness'; Url = 'https://goldbarfitness.netlify.app/' }
@@ -560,21 +631,17 @@ try {
   foreach ($key in $expectedProjects.Keys) {
     $actual = $workspace.projects.$key
     $expected = $expectedProjects[$key]
-    Assert-Audit ($actual.visible -and $actual.title -eq $expected.Title -and $actual.frame -eq $expected.Url -and $actual.open -eq $expected.Url) "$($expected.Title) live project opened with incorrect data."
+    Assert-Audit ($actual.visible -and $actual.closeWorkspaceVisible -and $actual.title -eq $expected.Title -and $actual.frame -eq $expected.Url -and $actual.open -eq $expected.Url) "$($expected.Title) live project opened with incorrect data or hid the Close workspace control."
     Assert-Audit ($actual.frameTitle -eq "$($expected.Title) live website preview") "$($expected.Title) iframe title was not updated."
   }
   Assert-Audit ($workspace.minimizedFocus -eq 'goldbar' -and $workspace.expanded -and $workspace.closeFocus -eq 'goldbar') 'Project window minimize/expand/close state or focus return is incorrect.'
-  Assert-Audit ($workspace.poweredOff) 'Power-off did not return focus to the Turn On control.'
+  Assert-Audit ($workspace.poweredOff) 'Power-off did not close the laptop, clear its preview, and return focus to the reveal control.'
 
   [void](Invoke-PageScript -Expression @'
 (async () => {
   document.documentElement.dataset.theme = 'dark';
-  const stage = document.querySelector('#workspace-stage');
-  const total = Math.max(stage.offsetHeight - innerHeight, 1);
-  window.scrollTo(0, stage.offsetTop + total * .45);
-  window.dispatchEvent(new Event('scroll'));
-  await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 150)));
-  document.querySelector('#workspace-turn-on').click();
+  document.querySelector('#workspace-reveal').click();
+  await new Promise(resolve => setTimeout(resolve, 900));
   document.querySelector('.desktop-icon[data-project="akwaaba"]').click();
   await new Promise(resolve => setTimeout(resolve, 1800));
   return true;
@@ -679,19 +746,30 @@ try {
   [void](Invoke-Cdp -Method 'Emulation.setEmulatedMedia' -Params @{ features = @(@{ name = 'prefers-reduced-motion'; value = 'reduce' }) })
   Set-ViewportAndLoad -Width 1280 -Height 900 -Url $pageUrl
   $reducedMotion = Invoke-PageScript -Expression @'
-(() => ({
-  matches:matchMedia('(prefers-reduced-motion: reduce)').matches,
-  heroStickyPosition:getComputedStyle(document.querySelector('.hero-sticky')).position,
-  footerArtAnimation:getComputedStyle(document.querySelector('.footer-art-image--clarity')).animationName,
-  alternateFooterArtDisplay:getComputedStyle(document.querySelector('.footer-art-image--direction')).display,
-  marqueeAnimation:getComputedStyle(document.querySelector('.marquee-track')).animationName,
-  duplicateTickerDisplay:getComputedStyle(document.querySelector('.marquee-group[aria-hidden="true"]')).display,
-  hiddenReveals:[...document.querySelectorAll('.reveal')].filter(element => Number(getComputedStyle(element).opacity) < .99).length,
-  errors:window.__portfolioAuditErrors || []
-}))()
+(async () => {
+  const stage = document.querySelector('#workspace-stage');
+  const device = document.querySelector('#workspace-device');
+  const result = {
+    matches:matchMedia('(prefers-reduced-motion: reduce)').matches,
+    heroStickyPosition:getComputedStyle(document.querySelector('.hero-sticky')).position,
+    footerArtAnimation:getComputedStyle(document.querySelector('.footer-art-image--clarity')).animationName,
+    alternateFooterArtDisplay:getComputedStyle(document.querySelector('.footer-art-image--direction')).display,
+    marqueeAnimation:getComputedStyle(document.querySelector('.marquee-track')).animationName,
+    duplicateTickerDisplay:getComputedStyle(document.querySelector('.marquee-group[aria-hidden="true"]')).display,
+    hiddenReveals:[...document.querySelectorAll('.reveal')].filter(element => Number(getComputedStyle(element).opacity) < .99).length,
+    workspaceInitialHeight:stage.getBoundingClientRect().height,
+    workspaceInitialHidden:device.getAttribute('aria-hidden')
+  };
+  document.querySelector('#workspace-reveal').click();
+  await new Promise(resolve => setTimeout(resolve, 60));
+  result.workspaceRevealed = stage.classList.contains('is-revealed') && device.classList.contains('is-powered') && device.getAttribute('aria-hidden') === 'false';
+  result.errors = window.__portfolioAuditErrors || [];
+  return result;
+})()
 '@
   Assert-Audit ($reducedMotion.matches -and $reducedMotion.heroStickyPosition -eq 'relative') 'Reduced-motion preference did not disable the sticky cinematic hero.'
   Assert-Audit ($reducedMotion.footerArtAnimation -eq 'none' -and $reducedMotion.alternateFooterArtDisplay -eq 'none' -and $reducedMotion.marqueeAnimation -eq 'none' -and $reducedMotion.duplicateTickerDisplay -eq 'none') 'Reduced-motion preference left decorative or looping motion active.'
+  Assert-Audit ($reducedMotion.workspaceInitialHeight -eq 0 -and $reducedMotion.workspaceInitialHidden -eq 'true' -and $reducedMotion.workspaceRevealed) 'Reduced-motion mode exposes an empty laptop stage or prevents the explicit reveal.'
   Assert-Audit ($reducedMotion.hiddenReveals -eq 0 -and @($reducedMotion.errors).Count -eq 0) 'Reduced-motion mode hides content or emitted a runtime error.'
   [void](Invoke-Cdp -Method 'Emulation.setEmulatedMedia' -Params @{ features = @(@{ name = 'prefers-reduced-motion'; value = 'no-preference' }) })
 

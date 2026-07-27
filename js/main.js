@@ -35,8 +35,7 @@ const formSuccess = qs('#form-success');
 
 const workspaceStage = qs('#workspace-stage');
 const workspaceDevice = qs('#workspace-device');
-const workspaceLaptop = qs('#workspace-laptop');
-const workspaceTurnOn = qs('#workspace-turn-on');
+const workspaceReveal = qs('#workspace-reveal');
 const workspacePower = qs('#workspace-power');
 
 const projectWindow = qs('#project-window');
@@ -59,6 +58,12 @@ const desktopIcons = qsa('.desktop-icon');
 const dockItems = qsa('.dock-item');
 const projectLaunchers = [...desktopIcons, ...dockItems].filter((button) => button.dataset.project);
 const caseStudyCards = qsa('.real-work-card-trigger');
+const showcaseTrack = qs('#showcase-track');
+const showcaseCards = qsa('.real-work-card', showcaseTrack || document);
+const showcasePrev = qs('#showcase-prev');
+const showcaseNext = qs('#showcase-next');
+const showcasePosition = qs('#showcase-position');
+const showcaseProgress = qs('#showcase-progress');
 const realWorkType = qs('#real-work-type');
 const realWorkTitle = qs('#real-work-title');
 const realWorkSummary = qs('#real-work-summary');
@@ -89,6 +94,8 @@ const galleryLightboxNext = qs('#gallery-lightbox-next');
 let heroTimer = null;
 let heroSlideIndex = 0;
 let workspacePowered = false;
+let workspaceRevealTimer = null;
+let workspaceCenterTimer = null;
 let activeProjectKey = 'akwaaba';
 let overlayTimer = null;
 let activeCaseStudyKey = null;
@@ -96,6 +103,8 @@ let activeCaseStudyImageIndex = 0;
 let caseStudyReturnFocus = null;
 let lightboxReturnFocus = null;
 let projectReturnFocus = null;
+let showcaseIndex = 0;
+let showcaseScrollTicking = false;
 let scrollTicking = false;
 let activeNavKey = null;
 let motionEnhanced = false;
@@ -617,6 +626,70 @@ function setLauncherState(projectKey) {
   });
 }
 
+function setShowcaseIndex(index, { scroll = false, announceChange = false } = {}) {
+  if (!showcaseTrack || !showcaseCards.length) return;
+
+  const nextIndex = clamp(index, 0, showcaseCards.length - 1);
+  const changed = nextIndex !== showcaseIndex;
+  showcaseIndex = nextIndex;
+
+  showcaseCards.forEach((card, cardIndex) => {
+    card.classList.toggle('is-current', cardIndex === showcaseIndex);
+  });
+
+  showcasePrev?.toggleAttribute('disabled', showcaseIndex === 0);
+  showcaseNext?.toggleAttribute('disabled', showcaseIndex === showcaseCards.length - 1);
+  if (showcasePosition) showcasePosition.textContent = `${String(showcaseIndex + 1).padStart(2, '0')} / ${String(showcaseCards.length).padStart(2, '0')}`;
+  showcaseProgress?.style.setProperty('--showcase-progress-x', `${showcaseIndex * 100}%`);
+
+  if (scroll) {
+    const card = showcaseCards[showcaseIndex];
+    const targetLeft = card.offsetLeft - (showcaseTrack.clientWidth - card.offsetWidth) / 2;
+    showcaseTrack.scrollTo({ left: targetLeft, behavior: reducedMotionQuery.matches ? 'auto' : 'smooth' });
+  }
+
+  if (changed && announceChange) announce(`${caseStudies[showcaseCards[showcaseIndex].dataset.caseStudyCard]?.title || 'Project'} selected`);
+}
+
+function updateShowcaseFromScroll() {
+  if (!showcaseTrack || !showcaseCards.length) return;
+  const viewportCenter = showcaseTrack.scrollLeft + showcaseTrack.clientWidth / 2;
+  const nearestIndex = showcaseCards.reduce((bestIndex, card, index) => {
+    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+    const bestCard = showcaseCards[bestIndex];
+    const bestCenter = bestCard.offsetLeft + bestCard.offsetWidth / 2;
+    return Math.abs(cardCenter - viewportCenter) < Math.abs(bestCenter - viewportCenter) ? index : bestIndex;
+  }, 0);
+  setShowcaseIndex(nearestIndex);
+}
+
+function setupShowcaseCarousel() {
+  if (!showcaseTrack || !showcaseCards.length) return;
+
+  setShowcaseIndex(0);
+  showcasePrev?.addEventListener('click', () => setShowcaseIndex(showcaseIndex - 1, { scroll: true, announceChange: true }));
+  showcaseNext?.addEventListener('click', () => setShowcaseIndex(showcaseIndex + 1, { scroll: true, announceChange: true }));
+
+  showcaseTrack.addEventListener('scroll', () => {
+    if (showcaseScrollTicking) return;
+    showcaseScrollTicking = true;
+    window.requestAnimationFrame(() => {
+      updateShowcaseFromScroll();
+      showcaseScrollTicking = false;
+    });
+  }, { passive: true });
+
+  showcaseTrack.addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    setShowcaseIndex(showcaseIndex + (event.key === 'ArrowRight' ? 1 : -1), { scroll: true, announceChange: true });
+  });
+
+  caseStudyCards.forEach((trigger, index) => {
+    trigger.addEventListener('focus', () => setShowcaseIndex(index, { scroll: true }));
+  });
+}
+
 
 function setCaseStudyCardState(projectKey) {
   activeCaseStudyKey = projectKey || null;
@@ -918,25 +991,81 @@ function setProject(projectKey, options = {}) {
   projectClose?.focus();
 }
 
-function powerOffWorkspace({ restoreFocus = true } = {}) {
+function powerOffWorkspace({ restoreFocus = true, announceChange = true } = {}) {
+  if (workspaceRevealTimer) {
+    window.clearTimeout(workspaceRevealTimer);
+    workspaceRevealTimer = null;
+  }
+  if (workspaceCenterTimer) {
+    window.clearTimeout(workspaceCenterTimer);
+    workspaceCenterTimer = null;
+  }
+
   workspacePowered = false;
-  workspaceDevice?.classList.remove('is-powered');
-  workspaceTurnOn?.setAttribute('aria-pressed', 'false');
-  workspacePower?.setAttribute('aria-pressed', 'false');
+  workspaceStage?.classList.remove('is-revealed');
+  workspaceDevice?.classList.remove('is-powered', 'is-open', 'is-ready', 'has-open-project');
+  workspaceDevice?.setAttribute('aria-hidden', 'true');
+  if (workspaceDevice) workspaceDevice.inert = true;
+  workspaceReveal?.setAttribute('aria-expanded', 'false');
   closeProjectWindow({ announceMessage: false, restoreFocus: false });
-  announce('Live project browser turned off');
-  if (restoreFocus) workspaceTurnOn?.focus();
+
+  if (projectFrame) {
+    projectFrame.src = 'about:blank';
+    delete projectFrame.dataset.requestedSrc;
+  }
+
+  if (announceChange) announce('Live workspace closed');
+  if (restoreFocus && workspaceReveal) {
+    window.setTimeout(() => {
+      workspaceReveal.focus({ preventScroll: true });
+      workspaceReveal.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'auto' : 'smooth', block: 'center' });
+    }, reducedMotionQuery.matches ? 0 : 120);
+  }
 }
 
 function powerOnWorkspace() {
   if (!workspaceDevice?.classList.contains('is-ready')) return;
   workspacePowered = true;
   workspaceDevice?.classList.add('is-powered');
-  workspaceTurnOn?.setAttribute('aria-pressed', 'true');
-  workspacePower?.setAttribute('aria-pressed', 'true');
   closeProjectWindow({ announceMessage: false, restoreFocus: false });
   setLauncherState(activeProjectKey);
-  announce('Live project browser turned on');
+  announce('Live workspace ready');
+}
+
+function revealWorkspace() {
+  if (!workspaceStage || !workspaceDevice || !workspaceReveal || isTabletMode()) return;
+
+  if (workspaceRevealTimer) window.clearTimeout(workspaceRevealTimer);
+  workspaceStage.classList.add('is-revealed');
+  workspaceDevice.setAttribute('aria-hidden', 'false');
+  workspaceDevice.inert = false;
+  workspaceReveal.setAttribute('aria-expanded', 'true');
+  announce('Opening live workspace');
+
+  const centerWorkspace = ({ exact = false } = {}) => {
+    if (exact) {
+      const stageRect = workspaceStage.getBoundingClientRect();
+      const targetTop = window.scrollY + stageRect.top + stageRect.height / 2 - window.innerHeight / 2;
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
+      return;
+    }
+    workspaceStage.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'auto' : 'smooth', block: 'center' });
+  };
+
+  window.requestAnimationFrame(() => {
+    workspaceDevice.classList.add('is-open', 'is-ready');
+    centerWorkspace();
+  });
+
+  workspaceCenterTimer = window.setTimeout(() => {
+    workspaceCenterTimer = null;
+    if (workspaceStage.classList.contains('is-revealed')) centerWorkspace({ exact: true });
+  }, reducedMotionQuery.matches ? 20 : 940);
+
+  workspaceRevealTimer = window.setTimeout(() => {
+    workspaceRevealTimer = null;
+    if (workspaceStage.classList.contains('is-revealed')) powerOnWorkspace();
+  }, reducedMotionQuery.matches ? 20 : 720);
 }
 
 function setupWorkspace() {
@@ -948,7 +1077,7 @@ function setupWorkspace() {
     });
   });
 
-  workspaceTurnOn?.addEventListener('click', powerOnWorkspace);
+  workspaceReveal?.addEventListener('click', revealWorkspace);
   workspacePower?.addEventListener('click', () => powerOffWorkspace());
 
   projectMinimize?.addEventListener('click', () => {
@@ -980,50 +1109,6 @@ function setupWorkspace() {
     hideBrowserOverlay();
     announce('Live preview loaded');
   });
-}
-
-function updateWorkspace() {
-  if (!workspaceStage || !workspaceLaptop || !workspaceDevice) return;
-
-  if (isTabletMode()) {
-    workspaceLaptop.style.setProperty('--open', '1');
-    workspaceLaptop.style.setProperty('--scale', '1');
-    workspaceLaptop.style.setProperty('--spin', '0deg');
-    workspaceLaptop.style.setProperty('--y', '0px');
-
-    workspaceDevice.classList.add('is-open', 'is-ready');
-    workspaceDevice.classList.toggle('is-powered', workspacePowered);
-    return;
-  }
-
-  const rect = workspaceStage.getBoundingClientRect();
-  const total = Math.max(workspaceStage.offsetHeight - window.innerHeight, 1);
-  const raw = clamp(-rect.top / total, 0, 1);
-
-  let open = 0;
-  if (raw < 0.28) open = raw / 0.28;
-  else if (raw > 0.78) open = Math.max(0, 1 - (raw - 0.78) / 0.22);
-  else open = 1;
-
-  const scale = 0.7 + open * 0.38;
-  const spin = -10 + open * 10;
-  const y = 72 - open * 72;
-
-  workspaceLaptop.style.setProperty('--open', open.toFixed(3));
-  workspaceLaptop.style.setProperty('--scale', scale.toFixed(3));
-  workspaceLaptop.style.setProperty('--spin', `${spin.toFixed(2)}deg`);
-  workspaceLaptop.style.setProperty('--y', `${y.toFixed(1)}px`);
-
-  const isOpen = open > 0.72;
-  const ready = open > 0.9;
-
-  workspaceDevice.classList.toggle('is-open', isOpen);
-  workspaceDevice.classList.toggle('is-ready', ready);
-  workspaceDevice.classList.toggle('is-powered', ready && workspacePowered);
-
-  if (!ready && workspacePowered) {
-    powerOffWorkspace({ restoreFocus: false });
-  }
 }
 
 function setupMobileNav() {
@@ -1137,7 +1222,6 @@ function setupForm() {
 
 function handleScroll() {
   updateHero();
-  updateWorkspace();
 }
 
 function requestScrollUpdate() {
@@ -1158,6 +1242,7 @@ function init() {
   motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
   if (!motionEnhanced) setupReveal();
   setupMarquee();
+  setupShowcaseCarousel();
   setupCaseStudies();
   setupWorkspace();
   setupMobileNav();
@@ -1165,7 +1250,7 @@ function init() {
   setupForm();
   setLauncherState(activeProjectKey);
 
-  workspacePowered = false;
+  powerOffWorkspace({ restoreFocus: false, announceChange: false });
   handleScroll();
 
   themeToggle?.addEventListener('click', () => {
@@ -1240,7 +1325,12 @@ window.addEventListener('resize', () => {
     navToggle?.setAttribute('aria-label', 'Open navigation');
   }
 
+  if (isTabletMode() && workspaceStage?.classList.contains('is-revealed')) {
+    powerOffWorkspace({ restoreFocus: false, announceChange: false });
+  }
+
   window.PortfolioMotion?.refresh?.();
+  updateShowcaseFromScroll();
   requestScrollUpdate();
 }, { passive: true });
 

@@ -19,10 +19,10 @@ CSS transforms provide the spatial device and card treatment. A WebGL dependency
 ## Experience map
 
 - Immediate hero with name, role, positioning, primary actions, and real project imagery
-- Scroll-linked device presentation with restrained depth and a visible motion fallback
+- Scroll-led hero presentation with restrained depth and a visible motion fallback
 - Three real project cards with project-specific art direction
 - Guided case-study detail, uncropped screen navigation, progress, and an enlarged-image dialog
-- Desktop laptop workspace with power, launch, reload, minimize, expand, close, and external-open controls
+- Explicitly revealed desktop laptop workspace that opens, powers on, launches projects, and closes cleanly from its power control
 - Direct, touch-friendly live-project links on mobile and tablet
 - Process and experience sections built from the portfolio's existing claims
 - Honest contact form that validates locally and opens a prefilled draft in the visitor's email application; the site does not send or store submissions

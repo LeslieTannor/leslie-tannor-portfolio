@@ -166,14 +166,26 @@
         <div class="showcase-copy">
           <p class="eyebrow">Selected real work</p>
           <h2 id="work-heading">Three products, each with its own visual logic.</h2>
-          <p>Explore the reasoning, interface decisions, and complete screen sets behind three real website concepts. Each story opens in place, without taking you away from the portfolio.</p>
+          <p>Three distinct visual worlds, built around three different user needs. Move through the collection, then open any project for its complete design story.</p>
         </div>
 
-        <div class="showcase-cards real-work-grid" role="group" aria-label="Real work projects">
+        <div class="showcase-carousel-bar">
+          <p id="showcase-instructions"><strong id="showcase-position">01 / 03</strong><span>Scroll, swipe, or use the arrow controls</span></p>
+          <div class="showcase-carousel-controls">
+            <button type="button" class="showcase-carousel-button" id="showcase-prev" aria-label="Show previous project">
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="showcase-carousel-button" id="showcase-next" aria-label="Show next project">
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="showcase-cards real-work-grid" id="showcase-track" role="group" aria-label="Real work projects" aria-describedby="showcase-instructions" tabindex="0">
           <article class="showcase-card real-work-card real-work-card--akwaaba" data-case-study-card="akwaaba">
             <span class="real-work-index" aria-hidden="true">01</span>
             <span class="showcase-thumb real-work-thumb">
-              <img src="images/Akwaaba%20House/Akwaaba%20House.png" alt="Akwaaba House homepage concept" width="1275" height="1248" loading="lazy">
+              <img src="images/Akwaaba%20House/Akwaaba%20House2.png" alt="Akwaaba House visual brand story and restaurant interface" width="1283" height="803" loading="lazy">
             </span>
             <div class="showcase-meta real-work-meta">
               <small>Restaurant Brand Website</small>
@@ -212,6 +224,8 @@
             <button type="button" class="real-work-card-trigger" data-case-study="wealthwise" aria-label="Open the WealthWise case study" aria-controls="real-work-detail" aria-expanded="false"></button>
           </article>
         </div>
+
+        <div class="showcase-scroll-progress" aria-hidden="true"><i id="showcase-progress"></i></div>
 
         <div class="real-work-detail" id="real-work-detail" hidden role="region" aria-labelledby="real-work-title">
           <div class="real-work-layout">
@@ -286,7 +300,11 @@
       <div class="container workspace-copy">
         <p class="eyebrow eyebrow-dark">Live website laboratory</p>
         <h2 id="workspace-heading">The designs move from case study to working website.</h2>
-        <p>Power on the desktop laptop to browse each live site in place. On smaller screens, direct project actions keep the experience fast and usable.</p>
+        <p>Reveal the desktop workspace to browse each live site in place. On smaller screens, direct project actions keep the experience fast and usable.</p>
+        <button class="workspace-reveal" id="workspace-reveal" type="button" aria-controls="workspace-device" aria-expanded="false">
+          <span><small>Interactive desktop preview</small><strong>Reveal live workspace</strong></span>
+          <i class="fa-solid fa-laptop" aria-hidden="true"></i>
+        </button>
       </div>
 
       <nav class="container mobile-project-links" aria-label="Live project websites">
@@ -309,7 +327,7 @@
 
       <div class="workspace-stage" id="workspace-stage">
         <div class="workspace-sticky">
-          <div class="workspace-device" id="workspace-device">
+          <div class="workspace-device" id="workspace-device" aria-hidden="true" inert>
             <div class="workspace-laptop" id="workspace-laptop">
               <div class="workspace-lid">
                 <div class="laptop-camera"></div>
@@ -322,8 +340,7 @@
                     </div>
                     <p class="workspace-boot-kicker">Interactive device / Desktop</p>
                     <p class="workspace-boot-title">Live project browser</p>
-                    <p class="workspace-boot-help" id="workspace-boot-help">Turn on the device to browse live projects. Use Tab to move through the icons and Enter to open a site inside the browser.</p>
-                    <button class="workspace-turn-on" id="workspace-turn-on" type="button" aria-describedby="workspace-boot-help" aria-pressed="false">Power on <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    <p class="workspace-boot-help">Opening the interactive workspace…</p>
                   </div>
                   <div class="workspace-desktop" id="workspace-desktop">
                     <button type="button" aria-label="Open Akwaaba House live project" class="desktop-icon is-active" data-project="akwaaba">
@@ -398,7 +415,7 @@
                     <button type="button" class="dock-item is-active" data-project="akwaaba" aria-label="Open Akwaaba House live project"><i class="fa-solid fa-utensils"></i></button>
                     <button type="button" class="dock-item" data-project="goldbar" aria-label="Open GoldBar Fitness live project"><i class="fa-solid fa-dumbbell"></i></button>
                     <button type="button" class="dock-item" data-project="wealthwise" aria-label="Open WealthWise live project"><i class="fa-solid fa-chart-line"></i></button>
-                    <button type="button" class="dock-item dock-item--power" id="workspace-power" aria-label="Turn off the live project browser" aria-pressed="false"><i class="fa-solid fa-power-off"></i></button>
+                    <button type="button" class="dock-item dock-item--power" id="workspace-power" aria-label="Close live workspace"><i class="fa-solid fa-power-off" aria-hidden="true"></i><span>Close workspace</span></button>
                   </div>
                 </div>
               </div>
