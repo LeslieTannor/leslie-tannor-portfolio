@@ -1,0 +1,1857 @@
+(() => {
+  'use strict';
+
+const root = document.documentElement;
+const THEME_KEY = 'leslie-theme-clean-v17';
+const SOUND_KEY = 'leslie-interface-sound';
+const isBrowserAudit = new URLSearchParams(window.location.search).has('browser-audit');
+
+const qs = (selector, scope = document) => scope.querySelector(selector);
+const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
+
+const themeToggle = qs('#theme-toggle');
+const themeColor = qs('meta[name="theme-color"]');
+const navToggle = qs('#nav-toggle');
+const navMenu = qs('#nav-menu');
+const uiStatus = qs('#ui-status');
+const marqueeToggle = qs('#marquee-toggle');
+const marqueeTrack = qs('.marquee-track');
+
+const heroSection = qs('.hero-section');
+const heroPointerGlow = qs('.hero-pointer-glow');
+const heroCopy = qs('.hero-copy');
+const heroDeviceWrap = qs('#hero-device-wrap');
+const heroDevice = qs('#hero-device');
+const heroBootState = qs('#hero-boot-state');
+const heroLogoState = qs('#hero-logo-state');
+const heroGallery = qs('#hero-gallery');
+const heroGalleryUi = qs('.hero-gallery-ui');
+const heroCloseCover = qs('#hero-close-cover');
+const heroSlides = qsa('.hero-slide');
+const heroDots = qsa('.hero-dot');
+
+const revealItems = qsa('.reveal');
+const navSections = qsa('main section[data-nav]');
+const navLinks = qsa('.nav-menu a[href^="#"]');
+const navActivePill = qs('.nav-active-pill');
+let navSelectionLock = null;
+let navSelectionTimer = null;
+
+const form = qs('.contact-form');
+const formSuccess = qs('#form-success');
+
+const workspaceStage = qs('#workspace-stage');
+const workspaceDevice = qs('#workspace-device');
+const workspaceReveal = qs('#workspace-reveal');
+const workspacePower = qs('#workspace-power');
+const workspaceTime = qs('#workspace-time');
+const workspaceDate = qs('#workspace-date');
+const workspaceTemperature = qs('#workspace-temperature');
+const workspaceWeatherLabel = qs('#workspace-weather-label');
+const workspaceLockTime = qs('#workspace-lock-time');
+const workspaceLockDate = qs('#workspace-lock-date');
+const workspaceLockTemperature = qs('#workspace-lock-temperature');
+const workspaceUnlock = qs('#workspace-unlock');
+const workspaceNotifications = qs('#workspace-notifications');
+const workspaceSoundToggle = qs('#workspace-sound-toggle');
+
+const projectWindow = qs('#project-window');
+const projectTitle = qs('#project-window-title');
+const projectKicker = qs('#project-window-kicker');
+const projectAddress = qs('#project-browser-address');
+const projectFrame = qs('#project-frame');
+const browserOverlay = qs('#browser-overlay');
+const browserOverlayTitle = qs('#browser-overlay-title');
+const browserOverlayCopy = qs('#browser-overlay-copy');
+const browserFallbackLink = qs('#browser-fallback-link');
+const browserOpenButton = qs('#project-browser-open');
+const browserReloadButton = qs('#project-browser-reload');
+
+const projectClose = qs('#project-window-close');
+const projectMinimize = qs('#project-window-minimize');
+const projectExpand = qs('#project-window-expand');
+
+const desktopIcons = qsa('.desktop-icon');
+const dockItems = qsa('.dock-item');
+const projectLaunchers = [...desktopIcons, ...dockItems].filter((button) => button.dataset.project);
+const caseStudyCards = qsa('.real-work-card-trigger');
+const showcaseTrack = qs('#showcase-track');
+const showcaseCards = qsa('.real-work-card', showcaseTrack || document);
+const showcasePrev = qs('#showcase-prev');
+const showcaseNext = qs('#showcase-next');
+const showcaseAutoplay = qs('#showcase-autoplay');
+const showcasePosition = qs('#showcase-position');
+const showcaseProgress = qs('#showcase-progress');
+const realWorkType = qs('#real-work-type');
+const realWorkTitle = qs('#real-work-title');
+const realWorkSummary = qs('#real-work-summary');
+const realWorkFeel = qs('#real-work-feel');
+const realWorkWhy = qs('#real-work-why');
+const realWorkDecisions = qs('#real-work-decisions');
+const realWorkChips = qs('#real-work-chips');
+const realWorkFeatured = qs('#real-work-featured');
+const realWorkFeaturedImage = qs('#real-work-featured-image');
+const realWorkFeaturedLabel = qs('#real-work-featured-label');
+const realWorkFeaturedCaption = qs('#real-work-featured-caption');
+const realWorkDetail = qs('#real-work-detail');
+const realWorkDetailClose = qs('#real-work-detail-close');
+const realWorkCarouselLabel = qs('#real-work-carousel-label');
+const realWorkImageCounter = qs('#real-work-image-counter');
+const realWorkProgressFill = qs('#real-work-progress-fill');
+const realWorkLiveLink = qs('#real-work-live-link');
+const realWorkPrev = qs('#real-work-prev');
+const realWorkNext = qs('#real-work-next');
+const galleryLightbox = qs('#gallery-lightbox');
+const galleryLightboxImage = qs('#gallery-lightbox-image');
+const galleryLightboxCaption = qs('#gallery-lightbox-caption');
+const galleryLightboxClose = qs('#gallery-lightbox-close');
+const galleryLightboxPrev = qs('#gallery-lightbox-prev');
+const galleryLightboxNext = qs('#gallery-lightbox-next');
+
+
+let heroTimer = null;
+let heroSlideIndex = 0;
+let heroAppliedCenterShift = 0;
+let heroHasScrolled = false;
+let workspacePowered = false;
+let workspaceRevealTimer = null;
+let workspaceCenterTimer = null;
+let activeProjectKey = 'akwaaba';
+let overlayTimer = null;
+let activeCaseStudyKey = null;
+let activeCaseStudyImageIndex = 0;
+let caseStudyReturnFocus = null;
+let soundEnabled = false;
+let interfaceAudioContext = null;
+let lightboxReturnFocus = null;
+let projectReturnFocus = null;
+let showcaseIndex = 0;
+let showcaseScrollTicking = false;
+let showcaseAutoplayTimer = null;
+let showcaseAutoplayTimestamp = 0;
+let showcaseAutoplayPaused = false;
+let showcaseLooping = false;
+let showcaseLeadingClone = null;
+let showcaseTrailingClone = null;
+let showcaseLoopCards = [];
+let showcasePhysicalIndex = 0;
+let showcaseInteractionPaused = false;
+let showcasePointerActive = false;
+let showcaseInView = false;
+let scrollTicking = false;
+let activeNavKey = null;
+let motionEnhanced = false;
+
+const tabletModeQuery = window.matchMedia('(max-width: 820px)');
+const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const isTabletMode = () => tabletModeQuery.matches;
+const SHOWCASE_LOOP_DURATION = 50000;
+
+const safeStorage = {
+  get(key, fallback) {
+    try {
+      return window.localStorage.getItem(key) ?? fallback;
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch {
+      // The preference still applies for the current page when storage is unavailable.
+    }
+  }
+};
+
+function updateSoundControl() {
+  if (!workspaceSoundToggle) return;
+  const label = soundEnabled ? 'Turn interface sounds off' : 'Turn interface sounds on';
+  workspaceSoundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  workspaceSoundToggle.setAttribute('aria-label', label);
+  workspaceSoundToggle.title = label;
+  const icon = workspaceSoundToggle.querySelector('i');
+  if (icon) icon.className = soundEnabled ? 'fa-solid fa-volume-low' : 'fa-solid fa-volume-xmark';
+}
+
+function playInterfaceSound(type = 'select') {
+  if (!soundEnabled) return;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  interfaceAudioContext ||= new AudioContextClass();
+  if (interfaceAudioContext.state === 'suspended') interfaceAudioContext.resume().catch(() => {});
+
+  const tones = {
+    open: [330, 494],
+    select: [440, 587],
+    close: [392, 262],
+    enabled: [523, 659]
+  };
+  const frequencies = tones[type] || tones.select;
+  const start = interfaceAudioContext.currentTime;
+
+  frequencies.forEach((frequency, index) => {
+    const oscillator = interfaceAudioContext.createOscillator();
+    const gain = interfaceAudioContext.createGain();
+    const toneStart = start + index * .055;
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, toneStart);
+    gain.gain.setValueAtTime(.0001, toneStart);
+    gain.gain.exponentialRampToValueAtTime(.026, toneStart + .018);
+    gain.gain.exponentialRampToValueAtTime(.0001, toneStart + .16);
+    oscillator.connect(gain).connect(interfaceAudioContext.destination);
+    oscillator.start(toneStart);
+    oscillator.stop(toneStart + .18);
+  });
+}
+
+function setupInterfaceSound() {
+  soundEnabled = safeStorage.get(SOUND_KEY, 'off') === 'on';
+  updateSoundControl();
+  workspaceSoundToggle?.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    safeStorage.set(SOUND_KEY, soundEnabled ? 'on' : 'off');
+    updateSoundControl();
+    if (soundEnabled) playInterfaceSound('enabled');
+    announce(soundEnabled ? 'Interface sounds on' : 'Interface sounds off');
+  });
+}
+
+const projects = {
+  akwaaba: {
+    title: 'Akwaaba House',
+    kicker: 'Live project preview',
+    url: 'https://akwaabahouse.netlify.app/'
+  },
+  goldbar: {
+    title: 'GoldBar Fitness',
+    kicker: 'Live project preview',
+    url: 'https://goldbarfitness.netlify.app/'
+  },
+  wealthwise: {
+    title: 'WealthWise',
+    kicker: 'Live project preview',
+    url: 'https://wealthwiselt.netlify.app/'
+  }
+};
+
+
+const caseStudies = {
+  akwaaba: {
+    title: 'Akwaaba House',
+    cardKicker: 'Restaurant Brand Website',
+    summary: 'I shaped Akwaaba House to feel like the digital version of walking into a premium Ghanaian dining space: warm, intentional, polished, and easy to trust. The experience leans on deep green and gold tones, confident typography, and rich imagery so the atmosphere does as much work as the copy.',
+    feel: 'I wanted visitors to feel welcomed immediately, but also reassured that the brand was premium, culturally grounded, and worth exploring further.',
+    why: 'That is why the hero is spacious, the type is editorial, and the layout avoids clutter. For a hospitality product, mood and appetite matter, so I let the imagery breathe and gave the primary actions clear visual priority.',
+    decisions: 'I broke the journey into story, space, highlights, menu, people, and contact so users can either browse at leisure or move directly toward a booking decision. The structure balances emotional storytelling with conversion clarity.',
+    chips: ['Hospitality UX', 'Brand storytelling', 'Conversion journey', 'Premium visual system'],
+    images: [
+      {
+        src: 'images/Akwaaba%20House/Akwaaba%20House.png',
+        width: 1275,
+        height: 1248,
+        alt: 'Akwaaba House homepage hero',
+        label: 'Homepage hero',
+        caption: 'A premium first impression built around atmosphere, large type, and a fast route into menu exploration or booking.'
+      },
+      {
+        src: 'images/Akwaaba%20House/Akwaaba%20House2.png',
+        width: 1283,
+        height: 803,
+        alt: 'Akwaaba House story section',
+        label: 'Story-led introduction',
+        caption: 'The story section explains the brand through atmosphere, interior quality, and warmth instead of using dense copy blocks.'
+      },
+      {
+        src: 'images/Akwaaba%20House/Akwaaba%20House3.png',
+        width: 1273,
+        height: 817,
+        alt: 'Akwaaba House gallery section',
+        label: 'Gallery and space preview',
+        caption: 'I used a scrollable gallery format so users can understand the restaurant experience visually before they ever arrive on-site.'
+      },
+      {
+        src: 'images/Akwaaba%20House/Akwaaba%20House4.png',
+        width: 1261,
+        height: 902,
+        alt: 'Akwaaba House highlights section',
+        label: 'Highlights section',
+        caption: 'This section turns menu personality into quick-scan cards so the food feels premium while still staying easy to browse.'
+      },
+      {
+        src: 'images/Akwaaba%20House/Akwaaba%20House5.png',
+        width: 1225,
+        height: 710,
+        alt: 'Akwaaba House menu exploration',
+        label: 'Menu exploration',
+        caption: 'I kept menu browsing card-based and visual so decision-making feels faster and more appetising on first contact.'
+      },
+      {
+        src: 'images/Akwaaba%20House/Akwaaba%20House6.png',
+        width: 1244,
+        height: 924,
+        alt: 'Akwaaba House people and testimonials section',
+        label: 'Trust and human connection',
+        caption: 'Introducing the people behind the experience helps the restaurant feel credible, personal, and service-led rather than anonymous.'
+      },
+      {
+        src: 'images/Akwaaba%20House/Akwaaba%20House7.png',
+        width: 1248,
+        height: 690,
+        alt: 'Akwaaba House contact section',
+        label: 'Contact and booking close',
+        caption: 'The closing section gathers address, opening times, and booking actions together so intent can convert without friction.'
+      }
+    ]
+  },
+  goldbar: {
+    title: 'GoldBar Fitness',
+    cardKicker: 'Fitness Brand + Product Ecosystem',
+    summary: 'I designed GoldBar Fitness as a premium performance brand that feels aspirational but still actionable. The system stretches across landing pages, membership flows, class browsing, app promotion, coaching credibility, and ecommerce so the brand can convert from multiple entry points.',
+    feel: 'I wanted users to feel energised, motivated, and part of something premium rather than like they were looking at another generic gym website.',
+    why: 'That drove the black-and-gold visual language, bold stat-led hero, strong contrast, and distinct routes into membership, classes, coaching, shop, and app touchpoints.',
+    decisions: 'I balanced aspiration with utility: visitors can explore training options, compare plans, shop essentials, review coaches, and understand the value proposition without losing momentum.',
+    chips: ['Fitness UX', 'Conversion system', 'Membership funnel', 'Cross-platform brand'],
+    images: [
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness%20Dark.png',
+        width: 1911,
+        height: 1218,
+        alt: 'GoldBar Fitness dark homepage hero',
+        label: 'Homepage hero',
+        caption: 'The hero uses motion, stats, and strong contrast to communicate premium positioning and training momentum straight away.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness2%20Dark.png',
+        width: 1537,
+        height: 1235,
+        alt: 'GoldBar Fitness founder and brand story in the dark theme',
+        label: 'Dark brand story',
+        caption: 'The dark-theme brand story introduces the founder and supporting credentials while keeping the premium visual language consistent.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness%20Light.png',
+        width: 1234,
+        height: 1066,
+        alt: 'GoldBar Fitness about section light theme',
+        label: 'Brand story and credibility',
+        caption: 'This lighter layout introduces the founder and the brand promise so the experience has a human anchor behind the premium styling.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness%20Light1.png',
+        width: 1241,
+        height: 640,
+        alt: 'GoldBar Fitness light hero variant',
+        label: 'Light hero variation',
+        caption: 'I explored a lighter hero direction to test how the same value proposition performs in a brighter, more editorial presentation.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness%20Light2.png',
+        width: 1241,
+        height: 618,
+        alt: 'GoldBar Fitness shop landing page',
+        label: 'Shop landing page',
+        caption: 'The shop entry keeps product messaging clean and direct so branded essentials feel like part of the overall membership ecosystem.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness%20Shop.png',
+        width: 1269,
+        height: 1003,
+        alt: 'GoldBar Fitness ecommerce product grid',
+        label: 'Product grid',
+        caption: 'Product cards are designed to stay premium but practical, keeping pricing and purchase actions easy to scan.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness3%20Dark.png',
+        width: 1583,
+        height: 1254,
+        alt: 'GoldBar Fitness training options section',
+        label: 'Training categories',
+        caption: 'I used a grid of training goals to help different users self-identify quickly and move toward the right offering.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness4%20Dark.png',
+        width: 2536,
+        height: 672,
+        alt: 'GoldBar Fitness membership benefits strip',
+        label: 'Member experience strip',
+        caption: 'This section condenses benefits into a quick comparison format so the promise is visible before pricing appears.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness5%20Dark.png',
+        width: 1551,
+        height: 1021,
+        alt: 'GoldBar Fitness experience gallery',
+        label: 'Experience gallery',
+        caption: 'The gallery gives spatial proof of the premium experience, reducing doubt around the actual gym environment.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness6%20Dark.png',
+        width: 1312,
+        height: 618,
+        alt: 'GoldBar Fitness mobile app concept',
+        label: 'App teaser',
+        caption: 'I introduced an app teaser to show that the product can extend beyond the physical gym into habit tracking and convenience.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness7%20Dark.png',
+        width: 1550,
+        height: 993,
+        alt: 'GoldBar Fitness coaches section',
+        label: 'Coach credibility',
+        caption: 'Featuring coaches adds proof, personality, and expertise to the journey, which is important for a trust-based fitness product.'
+      },
+      {
+        src: 'images/GoldBar%20Fitness/GoldBar%20Fitness8%20Dark.png',
+        width: 1251,
+        height: 1139,
+        alt: 'GoldBar Fitness pricing and contact section',
+        label: 'Pricing and conversion',
+        caption: 'The plans section is designed to make commitment levels clear and keep the enquiry path visible right beside the pricing.'
+      }
+    ]
+  },
+  wealthwise: {
+    title: 'WealthWise',
+    cardKicker: 'Fintech Dashboard Concept',
+    summary: 'I designed WealthWise as a finance interface that reduces anxiety through structure. Instead of making money management feel cold or overwhelming, I used a deep-blue visual system, strong card hierarchy, and focused navigation so the product feels calm, trustworthy, and immediately legible.',
+    feel: 'I wanted users to feel in control, informed, and guided rather than overwhelmed by numbers or financial jargon.',
+    why: 'That is why the interface leans on modular cards, clear spacing, concentrated glows, and progressive disclosure from high-level overviews into more detailed planning screens.',
+    decisions: 'I prioritised dashboard scannability, consistent component language, and straightforward information hierarchy so the product can support budgeting, savings, salary planning, home buying, and expenditure tracking without losing clarity.',
+    chips: ['Fintech UX', 'Information hierarchy', 'Dashboard design', 'Trust-first product'],
+    images: [
+      {
+        src: 'images/wealthwise/wealthwise.png',
+        width: 2225,
+        height: 1319,
+        alt: 'WealthWise marketing landing page',
+        label: 'Marketing overview',
+        caption: 'The landing page quickly frames the product as practical and approachable, using clear value cards to reduce ambiguity.'
+      },
+      {
+        src: 'images/wealthwise/wealthwise2.png',
+        width: 1586,
+        height: 992,
+        alt: 'WealthWise landing hero with dashboard preview',
+        label: 'Landing hero variant',
+        caption: 'This version pulls the dashboard preview forward so users immediately understand the product before reading deeply.'
+      },
+      {
+        src: 'images/wealthwise/wealthwise3.png',
+        width: 1586,
+        height: 992,
+        alt: 'WealthWise login screen',
+        label: 'Login and security',
+        caption: 'The login screen uses glow, focus, and restrained fields to make the brand feel secure without becoming visually heavy.'
+      },
+      {
+        src: 'images/wealthwise/wealthwise4.png',
+        width: 1586,
+        height: 992,
+        alt: 'WealthWise home planning dashboard',
+        label: 'Home planning dashboard',
+        caption: 'I designed the dream-home flow to connect saving behaviour with a concrete aspiration, which makes the product feel more motivating.'
+      },
+      {
+        src: 'images/wealthwise/wealthwise5.png',
+        width: 1586,
+        height: 992,
+        alt: 'WealthWise savings and salary dashboard',
+        label: 'Savings control center',
+        caption: 'This view organises salary, monthly budgeting, and savings targets into a single dashboard so progress stays visible at a glance.'
+      },
+      {
+        src: 'images/wealthwise/wealthwise6.png',
+        width: 1586,
+        height: 992,
+        alt: 'WealthWise expenditure analytics dashboard',
+        label: 'Expenditure analytics',
+        caption: 'The expenditure screen breaks spending into categories and transactions so users can move from awareness to action quickly.'
+      }
+    ]
+  }
+};
+
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function announce(message) {
+  if (!uiStatus) return;
+  uiStatus.textContent = '';
+  window.setTimeout(() => {
+    uiStatus.textContent = message;
+  }, 40);
+}
+
+function updateToggleStates() {
+  const theme = root.getAttribute('data-theme') || 'dark';
+  const lightThemeActive = theme === 'light';
+  themeToggle?.setAttribute('aria-pressed', String(lightThemeActive));
+  themeToggle?.setAttribute('aria-label', lightThemeActive ? 'Use dark theme' : 'Use light theme');
+}
+
+function setTheme(theme, { announceChange = true } = {}) {
+  root.setAttribute('data-theme', theme);
+  safeStorage.set(THEME_KEY, theme);
+  themeColor?.setAttribute('content', theme === 'light' ? '#ffffff' : '#080b10');
+
+  const icon = themeToggle?.querySelector('i');
+  if (icon) {
+    icon.className = theme === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  }
+
+  updateToggleStates();
+  if (announceChange) {
+    announce(theme === 'light' ? 'Light theme enabled' : 'Dark theme enabled');
+  }
+}
+
+function showHeroSlide(index) {
+  heroSlides.forEach((slide, slideIndex) => {
+    slide.classList.toggle('is-active', slideIndex === index);
+  });
+  heroDots.forEach((dot, dotIndex) => {
+    dot.classList.toggle('is-active', dotIndex === index);
+  });
+}
+
+function startHeroSlideshow() {
+  if (heroTimer || heroSlides.length < 2 || reducedMotionQuery.matches) return;
+  heroTimer = window.setInterval(() => {
+    heroSlideIndex = (heroSlideIndex + 1) % heroSlides.length;
+    showHeroSlide(heroSlideIndex);
+  }, 3200);
+}
+
+function stopHeroSlideshow() {
+  if (!heroTimer) return;
+  clearInterval(heroTimer);
+  heroTimer = null;
+}
+
+function setMarqueePaused(paused, { announceChange = true } = {}) {
+  marqueeTrack?.classList.toggle('is-paused', paused);
+  marqueeToggle?.setAttribute('aria-pressed', String(paused));
+  marqueeToggle?.setAttribute('aria-label', paused ? 'Resume scrolling portfolio themes' : 'Pause scrolling portfolio themes');
+  const icon = marqueeToggle?.querySelector('i');
+  if (icon) icon.className = paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+  if (announceChange) announce(paused ? 'Scrolling portfolio themes paused' : 'Scrolling portfolio themes resumed');
+}
+
+function setupMarquee() {
+  if (!marqueeToggle || !marqueeTrack) return;
+  setMarqueePaused(reducedMotionQuery.matches, { announceChange: false });
+  marqueeToggle.addEventListener('click', () => {
+    setMarqueePaused(!marqueeTrack.classList.contains('is-paused'));
+  });
+}
+
+function updateHero() {
+  if (!heroSection) return;
+
+  if (isTabletMode() || reducedMotionQuery.matches) {
+    if (heroCopy) {
+      heroCopy.style.opacity = '1';
+      heroCopy.style.visibility = 'visible';
+      heroCopy.style.transform = 'none';
+      heroCopy.style.pointerEvents = 'auto';
+    }
+    if (heroBootState) {
+      heroBootState.style.opacity = '0';
+      heroBootState.style.visibility = 'hidden';
+    }
+    if (heroLogoState) {
+      heroLogoState.style.opacity = '0';
+      heroLogoState.style.visibility = 'hidden';
+    }
+    if (heroGallery) {
+      heroGallery.style.opacity = '1';
+      heroGallery.style.visibility = 'visible';
+    }
+    if (heroGalleryUi) {
+      heroGalleryUi.style.opacity = '1';
+      heroGalleryUi.style.visibility = 'visible';
+    }
+    if (heroCloseCover) {
+      heroCloseCover.style.opacity = '0';
+      heroCloseCover.style.transform = 'none';
+    }
+    if (heroDevice) {
+      heroDevice.style.transform = 'none';
+      heroDevice.classList.remove('is-closing', 'is-closed');
+    }
+    if (heroDeviceWrap) {
+      heroDeviceWrap.style.opacity = '1';
+      heroDeviceWrap.style.pointerEvents = 'auto';
+      heroDeviceWrap.style.transform = 'none';
+      heroAppliedCenterShift = 0;
+    }
+    root.style.setProperty('--hero-progress', '1');
+    if (!reducedMotionQuery.matches) startHeroSlideshow();
+    return;
+  }
+
+  const rect = heroSection.getBoundingClientRect();
+  const total = Math.max(heroSection.offsetHeight - window.innerHeight, 1);
+  const progress = clamp(-rect.top / total, 0, 1);
+  // Complete the reveal before the end, leaving a short viewing beat without
+  // making visitors traverse an oversized sticky region in either direction.
+  const sequenceProgress = clamp(progress / 0.68, 0, 1);
+  if (progress > 0.001) heroHasScrolled = true;
+
+  const bootOut = clamp((sequenceProgress - 0.18) / 0.14, 0, 1);
+  const logoIn = clamp((sequenceProgress - 0.28) / 0.12, 0, 1);
+  const logoOut = clamp((sequenceProgress - 0.44) / 0.12, 0, 1);
+  const logoOpacity = logoIn * (1 - logoOut);
+  const galleryIn = clamp((sequenceProgress - 0.54) / 0.16, 0, 1);
+  // Keep the live project visible through the end of the hero sequence.
+  const closeProgress = 0;
+  // A generous, scroll-linked exit makes the tablet fade in both directions:
+  // out toward the next section and back in when the visitor scrolls upward.
+  const fadeOut = clamp((progress - 0.84) / 0.14, 0, 1);
+  const copyOut = clamp((sequenceProgress - 0.06) / 0.3, 0, 1);
+
+  if (heroCopy) {
+    heroCopy.style.opacity = 1 - copyOut;
+    heroCopy.style.visibility = copyOut > 0.98 ? 'hidden' : 'visible';
+    heroCopy.style.transform = `translateY(${-42 * copyOut}px) scale(${1 - copyOut * 0.05})`;
+    heroCopy.style.pointerEvents = copyOut > 0.9 ? 'none' : 'auto';
+  }
+
+  if (heroBootState) {
+    const opacity = Math.max(0, 1 - bootOut) * (1 - closeProgress);
+    heroBootState.style.opacity = opacity;
+    heroBootState.style.visibility = opacity > 0.02 ? 'visible' : 'hidden';
+    heroBootState.style.transform = `translateY(${bootOut * 10}px) scale(${1 - bootOut * 0.03})`;
+  }
+
+  if (heroLogoState) {
+    heroLogoState.style.opacity = logoOpacity;
+    heroLogoState.style.visibility = logoOpacity > 0.02 ? 'visible' : 'hidden';
+    heroLogoState.style.transform = `translateY(${16 - logoIn * 16 + logoOut * 8}px) scale(${0.95 + logoIn * 0.06 - logoOut * 0.03})`;
+  }
+
+  if (heroGallery) {
+    const opacity = galleryIn * (1 - closeProgress) * (1 - fadeOut * 0.9);
+    heroGallery.style.opacity = opacity;
+    heroGallery.style.visibility = opacity > 0.02 ? 'visible' : 'hidden';
+
+    if (opacity > 0.08) {
+      startHeroSlideshow();
+    } else {
+      stopHeroSlideshow();
+      heroSlideIndex = 0;
+      showHeroSlide(0);
+    }
+  }
+
+  if (heroGalleryUi) {
+    const opacity = clamp((galleryIn - 0.08) / 0.22, 0, 1) * (1 - closeProgress) * (1 - fadeOut * 0.9);
+    heroGalleryUi.style.opacity = opacity;
+    heroGalleryUi.style.visibility = opacity > 0.02 ? 'visible' : 'hidden';
+  }
+
+  if (heroDevice) {
+    const translateY = 20 - galleryIn * 12 + closeProgress * 8 + fadeOut * 36;
+    const growth = clamp(sequenceProgress / 0.72, 0, 1);
+    const scale = 0.96 + growth * 0.26 - fadeOut * 0.06;
+    heroDevice.style.transform = `translateY(${translateY}px) scale(${scale})`;
+    heroDevice.classList.toggle('is-closing', closeProgress > 0.02);
+    heroDevice.classList.toggle('is-closed', closeProgress > 0.92);
+  }
+
+  if (heroCloseCover) {
+    const travel = -108 + closeProgress * 108;
+    const angle = -96 + closeProgress * 96;
+    heroCloseCover.style.transform = `perspective(1800px) translateY(${travel}%) rotateX(${angle}deg)`;
+    heroCloseCover.style.opacity = closeProgress > 0.02 ? 1 : 0;
+  }
+
+  if (heroDeviceWrap) {
+    const centerIn = clamp((sequenceProgress - 0.08) / 0.3, 0, 1);
+    const currentRect = (heroDevice || heroDeviceWrap).getBoundingClientRect();
+    const baseCenter = currentRect.left + currentRect.width / 2 - heroAppliedCenterShift;
+    const fullCenterShift = window.innerWidth / 2 - baseCenter;
+    heroAppliedCenterShift = fullCenterShift * centerIn;
+    heroDeviceWrap.style.transform = `translate3d(${heroAppliedCenterShift}px, 0, 0)`;
+    if (fadeOut > 0) {
+      heroDeviceWrap.style.opacity = 1 - fadeOut;
+    } else if (heroHasScrolled) {
+      heroDeviceWrap.style.opacity = '1';
+    }
+    heroDeviceWrap.style.pointerEvents = fadeOut > 0.96 ? 'none' : 'auto';
+  }
+}
+
+function setActiveNav(currentNavKey) {
+  activeNavKey = currentNavKey;
+  navLinks.forEach((link) => {
+    const targetNavKey = link.dataset.nav || link.getAttribute('href').replace('#', '');
+    const active = Boolean(currentNavKey) && targetNavKey === currentNavKey;
+    link.classList.toggle('is-active', active);
+
+    if (active) {
+      link.setAttribute('aria-current', 'location');
+    } else {
+      link.removeAttribute('aria-current');
+    }
+  });
+
+  const activeLink = navLinks.find((link) => link.classList.contains('is-active'));
+  if (navActivePill && activeLink) {
+    navActivePill.style.width = `${activeLink.offsetWidth}px`;
+    navActivePill.style.transform = `translateX(${activeLink.offsetLeft}px)`;
+    navActivePill.classList.add('is-visible');
+  } else {
+    navActivePill?.classList.remove('is-visible');
+  }
+}
+
+function updateActiveNav() {
+  if (!navSections.length) return;
+  if (navSelectionLock) {
+    setActiveNav(navSelectionLock);
+    return;
+  }
+  const headerHeight = qs('.site-header')?.offsetHeight || 88;
+  const focusLine = headerHeight + 32;
+  const getLayoutTop = (element) => {
+    let top = 0;
+    let current = element;
+    while (current) {
+      top += current.offsetTop || 0;
+      current = current.offsetParent;
+    }
+    return top;
+  };
+  const passedSections = navSections.filter((section) => getLayoutTop(section) <= window.scrollY + focusLine);
+  const atPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+  const currentSection = atPageEnd ? navSections.at(-1) : (passedSections.at(-1) || null);
+  setActiveNav(currentSection?.dataset.nav || 'work');
+}
+
+function setupActiveNavigation() {
+  updateActiveNav();
+}
+
+function setupReveal() {
+  if (reducedMotionQuery.matches || !('IntersectionObserver' in window)) {
+    revealItems.forEach((item) => item.classList.add('is-visible'));
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: 0.14, rootMargin: '0px 0px -40px 0px' });
+
+  revealItems.forEach((item) => observer.observe(item));
+}
+
+function setLauncherState(projectKey) {
+  activeProjectKey = projectKey;
+  projectLaunchers.forEach((launcher) => {
+    launcher.classList.toggle('is-active', launcher.dataset.project === projectKey);
+  });
+}
+
+function setShowcaseIndex(index, { scroll = false, announceChange = false, behavior } = {}) {
+  if (!showcaseTrack || !showcaseCards.length) return;
+
+  const nextIndex = ((index % showcaseCards.length) + showcaseCards.length) % showcaseCards.length;
+  const changed = nextIndex !== showcaseIndex;
+  showcaseIndex = nextIndex;
+
+  showcaseCards.forEach((card, cardIndex) => {
+    card.classList.toggle('is-current', cardIndex === showcaseIndex);
+  });
+
+  showcasePrev?.removeAttribute('disabled');
+  showcaseNext?.removeAttribute('disabled');
+  if (showcasePosition) showcasePosition.textContent = `${String(showcaseIndex + 1).padStart(2, '0')} / ${String(showcaseCards.length).padStart(2, '0')}`;
+  showcaseProgress?.style.setProperty('--showcase-progress-x', `${showcaseIndex * 100}%`);
+
+  if (scroll) {
+    const card = showcaseCards[showcaseIndex];
+    const targetLeft = card.offsetLeft - (showcaseTrack.clientWidth - card.offsetWidth) / 2;
+    showcaseTrack.scrollTo({ left: targetLeft, behavior: behavior || (reducedMotionQuery.matches ? 'auto' : 'smooth') });
+  }
+
+  if (changed && announceChange) announce(`${caseStudies[showcaseCards[showcaseIndex].dataset.caseStudyCard]?.title || 'Project'} selected`);
+}
+
+function scrollShowcaseCardIntoView(card, behavior = 'smooth') {
+  if (!showcaseTrack || !card) return;
+  const targetLeft = card.offsetLeft - (showcaseTrack.clientWidth - card.offsetWidth) / 2;
+  showcaseTrack.scrollTo({ left: targetLeft, behavior });
+}
+
+function loopShowcase(direction, { announceChange = false } = {}) {
+  if (!showcaseTrack || showcaseLooping) return;
+  const forward = direction > 0;
+  const clone = forward ? showcaseTrailingClone : showcaseLeadingClone;
+  const destinationIndex = forward ? 0 : showcaseCards.length - 1;
+  const destinationCard = showcaseCards[destinationIndex];
+  if (!clone || !destinationCard) return;
+
+  showcaseLooping = true;
+  setShowcaseIndex(destinationIndex, { announceChange });
+  clone.classList.add('is-current');
+  scrollShowcaseCardIntoView(clone, reducedMotionQuery.matches ? 'auto' : 'smooth');
+
+  let settled = false;
+  let scrollDebounce = null;
+  let safetyTimer = null;
+
+  const finishLoop = () => {
+    if (settled) return;
+    settled = true;
+    showcaseTrack.removeEventListener('scrollend', finishLoop);
+    showcaseTrack.removeEventListener('scroll', scheduleFallback);
+    window.clearTimeout(scrollDebounce);
+    window.clearTimeout(safetyTimer);
+
+    showcaseTrack.style.scrollSnapType = 'none';
+    scrollShowcaseCardIntoView(destinationCard, 'auto');
+    clone.classList.remove('is-current');
+    window.requestAnimationFrame(() => {
+      showcaseTrack.style.removeProperty('scroll-snap-type');
+      showcaseLooping = false;
+    });
+  };
+
+  const scheduleFallback = () => {
+    window.clearTimeout(scrollDebounce);
+    scrollDebounce = window.setTimeout(finishLoop, 140);
+  };
+
+  if (reducedMotionQuery.matches) {
+    finishLoop();
+    return;
+  }
+
+  showcaseTrack.addEventListener('scrollend', finishLoop, { once: true });
+  showcaseTrack.addEventListener('scroll', scheduleFallback, { passive: true });
+  safetyTimer = window.setTimeout(finishLoop, 1800);
+}
+
+function stepShowcase(direction, { announceChange = false } = {}) {
+  if (!showcaseTrack || !showcaseLoopCards.length || showcaseLooping) return;
+
+  const count = showcaseCards.length;
+  const targetPhysicalIndex = clamp(showcasePhysicalIndex + direction, 0, showcaseLoopCards.length - 1);
+  const targetCard = showcaseLoopCards[targetPhysicalIndex];
+  const logicalIndex = ((targetPhysicalIndex - count) % count + count) % count;
+  showcasePhysicalIndex = targetPhysicalIndex;
+  showcaseLooping = true;
+  setShowcaseIndex(logicalIndex, { announceChange });
+  scrollShowcaseCardIntoView(targetCard, reducedMotionQuery.matches ? 'auto' : 'smooth');
+
+  let settled = false;
+  let debounceTimer = null;
+  let safetyTimer = null;
+  const finish = () => {
+    if (settled) return;
+    settled = true;
+    showcaseTrack.removeEventListener('scrollend', finish);
+    showcaseTrack.removeEventListener('scroll', debounce);
+    window.clearTimeout(debounceTimer);
+    window.clearTimeout(safetyTimer);
+
+    let normalizedIndex = showcasePhysicalIndex;
+    if (normalizedIndex < count) normalizedIndex += count;
+    if (normalizedIndex >= count * 2) normalizedIndex -= count;
+    showcasePhysicalIndex = normalizedIndex;
+
+    showcaseTrack.style.scrollSnapType = 'none';
+    const normalizedCard = showcaseLoopCards[normalizedIndex];
+    const normalizedLeft = normalizedCard.offsetLeft - (showcaseTrack.clientWidth - normalizedCard.offsetWidth) / 2;
+    showcaseTrack.scrollLeft = normalizedLeft;
+    window.requestAnimationFrame(() => {
+      showcaseTrack.style.removeProperty('scroll-snap-type');
+      showcaseLooping = false;
+      restartShowcaseAutoplay();
+    });
+  };
+  const debounce = () => {
+    window.clearTimeout(debounceTimer);
+    debounceTimer = window.setTimeout(finish, 140);
+  };
+
+  clearShowcaseAutoplayTimer();
+  showcaseTrack.classList.remove('is-continuous');
+  if (reducedMotionQuery.matches) {
+    finish();
+  } else {
+    showcaseTrack.addEventListener('scrollend', finish, { once: true });
+    showcaseTrack.addEventListener('scroll', debounce, { passive: true });
+    safetyTimer = window.setTimeout(finish, 1800);
+  }
+}
+
+function clearShowcaseAutoplayTimer() {
+  if (!showcaseAutoplayTimer) return;
+  window.cancelAnimationFrame(showcaseAutoplayTimer);
+  showcaseAutoplayTimer = null;
+  showcaseAutoplayTimestamp = 0;
+}
+
+function isShowcaseAutoplayBlocked() {
+  return showcaseAutoplayPaused || reducedMotionQuery.matches || document.hidden || !showcaseInView;
+}
+
+function updateShowcaseAutoplayControl() {
+  if (!showcaseAutoplay) return;
+  const paused = showcaseAutoplayPaused || reducedMotionQuery.matches;
+  const label = paused ? 'Resume automatic project movement' : 'Pause automatic project movement';
+  showcaseAutoplay.setAttribute('aria-pressed', String(paused));
+  showcaseAutoplay.setAttribute('aria-label', label);
+  showcaseAutoplay.setAttribute('title', label);
+  const icon = showcaseAutoplay.querySelector('i');
+  if (icon) icon.className = paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+}
+
+function scheduleShowcaseAutoplay() {
+  clearShowcaseAutoplayTimer();
+  if (!showcaseCards.length || !showcaseTrack || !showcaseTrailingClone || isShowcaseAutoplayBlocked()) {
+    showcaseTrack?.classList.toggle('is-continuous', showcaseAutoplayPaused && !reducedMotionQuery.matches);
+    return;
+  }
+
+  showcaseTrack.classList.add('is-continuous');
+  const firstCard = showcaseCards[0];
+
+  const move = (timestamp) => {
+    if (isShowcaseAutoplayBlocked()) {
+      showcaseAutoplayTimer = null;
+      showcaseAutoplayTimestamp = 0;
+      showcaseTrack.classList.remove('is-continuous');
+      return;
+    }
+
+    if (!showcaseAutoplayTimestamp) showcaseAutoplayTimestamp = timestamp;
+    const elapsed = Math.min(timestamp - showcaseAutoplayTimestamp, 50);
+    showcaseAutoplayTimestamp = timestamp;
+
+    const firstLeft = firstCard.offsetLeft - (showcaseTrack.clientWidth - firstCard.offsetWidth) / 2;
+    const loopLeft = showcaseTrailingClone.offsetLeft - (showcaseTrack.clientWidth - showcaseTrailingClone.offsetWidth) / 2;
+    const cycleDistance = Math.max(loopLeft - firstLeft, 1);
+    showcaseTrack.scrollLeft += elapsed * cycleDistance / SHOWCASE_LOOP_DURATION;
+
+    if (showcaseTrack.scrollLeft >= loopLeft) {
+      showcaseLooping = true;
+      showcasePhysicalIndex = showcaseCards.length;
+      setShowcaseIndex(0);
+      showcaseTrack.scrollLeft = firstLeft + (showcaseTrack.scrollLeft - loopLeft);
+      window.requestAnimationFrame(() => { showcaseLooping = false; });
+    }
+
+    showcaseAutoplayTimer = window.requestAnimationFrame(move);
+  };
+
+  showcaseAutoplayTimer = window.requestAnimationFrame(move);
+}
+
+function restartShowcaseAutoplay() {
+  clearShowcaseAutoplayTimer();
+  scheduleShowcaseAutoplay();
+}
+
+function setShowcaseAutoplayPaused(paused, { announceChange = true } = {}) {
+  showcaseAutoplayPaused = paused;
+  updateShowcaseAutoplayControl();
+  restartShowcaseAutoplay();
+  if (announceChange) announce(paused ? 'Automatic project movement paused' : 'Automatic project movement resumed');
+}
+
+function updateShowcaseInteractionState() {
+  if (!showcaseTrack) return;
+  showcaseInteractionPaused = showcasePointerActive || showcaseTrack.matches(':hover') || showcaseTrack.contains(document.activeElement);
+}
+
+function updateShowcaseFromScroll() {
+  if (!showcaseTrack || !showcaseCards.length || showcaseLooping) return;
+  const viewportCenter = showcaseTrack.scrollLeft + showcaseTrack.clientWidth / 2;
+  const candidates = showcaseLoopCards.length ? showcaseLoopCards : showcaseCards;
+  const nearestPhysicalIndex = candidates.reduce((bestIndex, card, index) => {
+    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+    const bestCard = candidates[bestIndex];
+    const bestCenter = bestCard.offsetLeft + bestCard.offsetWidth / 2;
+    return Math.abs(cardCenter - viewportCenter) < Math.abs(bestCenter - viewportCenter) ? index : bestIndex;
+  }, 0);
+  showcasePhysicalIndex = nearestPhysicalIndex;
+  const logicalIndex = showcaseLoopCards.length
+    ? ((nearestPhysicalIndex - showcaseCards.length) % showcaseCards.length + showcaseCards.length) % showcaseCards.length
+    : nearestPhysicalIndex;
+  setShowcaseIndex(logicalIndex);
+}
+
+function setupShowcaseCarousel() {
+  if (!showcaseTrack || !showcaseCards.length) return;
+
+  const makeLoopClone = (card) => {
+    const clone = card.cloneNode(true);
+    clone.classList.add('is-loop-clone');
+    clone.setAttribute('aria-hidden', 'true');
+    clone.inert = true;
+    clone.querySelectorAll('[id]').forEach((element) => element.removeAttribute('id'));
+    clone.querySelectorAll('a, button, input, select, textarea, [tabindex]').forEach((element) => element.setAttribute('tabindex', '-1'));
+    return clone;
+  };
+
+  const showcaseLeadingClones = showcaseCards.map(makeLoopClone);
+  const showcaseTrailingClones = showcaseCards.map(makeLoopClone);
+  showcaseLeadingClone = showcaseLeadingClones.at(-1);
+  showcaseTrailingClone = showcaseTrailingClones[0];
+  showcaseTrailingClone.classList.add('is-current');
+  showcaseTrack.prepend(...showcaseLeadingClones);
+  showcaseTrailingClones.forEach((clone) => showcaseTrack.append(clone));
+  showcaseLoopCards = [...showcaseLeadingClones, ...showcaseCards, ...showcaseTrailingClones];
+  showcasePhysicalIndex = showcaseCards.length;
+
+  setShowcaseIndex(0, { scroll: true, behavior: 'auto' });
+  updateShowcaseAutoplayControl();
+  showcasePrev?.addEventListener('click', () => {
+    stepShowcase(-1, { announceChange: true });
+  });
+  showcaseNext?.addEventListener('click', () => {
+    stepShowcase(1, { announceChange: true });
+  });
+  showcaseAutoplay?.addEventListener('click', () => {
+    if (reducedMotionQuery.matches) {
+      updateShowcaseAutoplayControl();
+      announce('Automatic project movement remains paused because reduced motion is enabled');
+      return;
+    }
+    setShowcaseAutoplayPaused(!showcaseAutoplayPaused);
+  });
+
+  showcaseTrack.addEventListener('scroll', () => {
+    if (showcaseScrollTicking) return;
+    showcaseScrollTicking = true;
+    window.requestAnimationFrame(() => {
+      updateShowcaseFromScroll();
+      showcaseScrollTicking = false;
+    });
+  }, { passive: true });
+
+  showcaseTrack.addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    stepShowcase(event.key === 'ArrowRight' ? 1 : -1, { announceChange: true });
+  });
+
+  caseStudyCards.forEach((trigger, index) => {
+    trigger.addEventListener('focus', () => setShowcaseIndex(index, { scroll: true }));
+  });
+
+  showcaseTrack.addEventListener('pointerenter', updateShowcaseInteractionState);
+  showcaseTrack.addEventListener('pointerleave', updateShowcaseInteractionState);
+  showcaseTrack.addEventListener('pointerdown', () => {
+    showcasePointerActive = true;
+    updateShowcaseInteractionState();
+  });
+  showcaseTrack.addEventListener('pointerup', () => {
+    showcasePointerActive = false;
+    updateShowcaseInteractionState();
+  });
+  showcaseTrack.addEventListener('pointercancel', () => {
+    showcasePointerActive = false;
+    updateShowcaseInteractionState();
+  });
+  showcaseTrack.addEventListener('focusin', updateShowcaseInteractionState);
+  showcaseTrack.addEventListener('focusout', () => window.requestAnimationFrame(updateShowcaseInteractionState));
+
+  if ('IntersectionObserver' in window) {
+    const showcaseObserver = new IntersectionObserver(([entry]) => {
+      showcaseInView = Boolean(entry?.isIntersecting);
+      restartShowcaseAutoplay();
+    }, { threshold: .2 });
+    showcaseObserver.observe(showcaseTrack);
+  } else {
+    showcaseInView = true;
+    scheduleShowcaseAutoplay();
+  }
+}
+
+
+function setCaseStudyCardState(projectKey) {
+  activeCaseStudyKey = projectKey || null;
+  caseStudyCards.forEach((card) => {
+    const active = Boolean(projectKey) && card.dataset.caseStudy === projectKey;
+    card.closest('.real-work-card')?.classList.toggle('is-active', active);
+    card.setAttribute('aria-expanded', String(active));
+  });
+}
+
+function showCaseStudyDetail() {
+  if (!realWorkDetail) return;
+  realWorkDetail.hidden = false;
+  realWorkDetail.setAttribute('aria-hidden', 'false');
+}
+
+function hideCaseStudyDetail({ clearSelection = false, announceMessage = false, restoreFocus = false } = {}) {
+  const returnTrigger = restoreFocus && caseStudyReturnFocus?.isConnected ? caseStudyReturnFocus : null;
+  const returnCard = returnTrigger?.closest('.real-work-card') || null;
+
+  if (realWorkDetail) {
+    realWorkDetail.hidden = true;
+    realWorkDetail.setAttribute('aria-hidden', 'true');
+  }
+
+  if (clearSelection) {
+    activeCaseStudyKey = null;
+    setCaseStudyCardState(null);
+  }
+
+  if (announceMessage) {
+    announce('Case study hidden');
+  }
+
+  if (clearSelection) {
+    caseStudyReturnFocus = null;
+  }
+
+  window.PortfolioMotion?.refresh?.();
+
+  if (returnCard && returnTrigger) {
+    clearShowcaseAutoplayTimer();
+    window.requestAnimationFrame(() => {
+      returnCard.scrollIntoView({
+        behavior: reducedMotionQuery.matches ? 'auto' : 'smooth',
+        block: 'center',
+        inline: 'center'
+      });
+      returnTrigger.focus({ preventScroll: true });
+      window.setTimeout(restartShowcaseAutoplay, reducedMotionQuery.matches ? 0 : 750);
+    });
+  }
+}
+
+function stepCaseStudyImage(direction = 1) {
+  const study = caseStudies[activeCaseStudyKey];
+  if (!study?.images?.length) return;
+  const total = study.images.length;
+  const nextIndex = (activeCaseStudyImageIndex + direction + total) % total;
+  setFeaturedCaseStudyImage(activeCaseStudyKey, nextIndex);
+}
+
+function setFeaturedCaseStudyImage(projectKey, imageIndex) {
+  const study = caseStudies[projectKey];
+  const image = study?.images?.[imageIndex];
+  if (!study || !image) return;
+
+  activeCaseStudyImageIndex = imageIndex;
+
+  if (realWorkFeatured && !reducedMotionQuery.matches) {
+    realWorkFeatured.classList.remove('is-switching');
+    void realWorkFeatured.offsetWidth;
+    realWorkFeatured.classList.add('is-switching');
+    window.setTimeout(() => realWorkFeatured.classList.remove('is-switching'), 520);
+  }
+
+  if (realWorkFeaturedImage) {
+    realWorkFeaturedImage.src = image.src;
+    realWorkFeaturedImage.alt = image.alt;
+    realWorkFeaturedImage.width = image.width;
+    realWorkFeaturedImage.height = image.height;
+  }
+
+  if (realWorkFeaturedLabel) realWorkFeaturedLabel.textContent = image.label;
+  if (realWorkFeaturedCaption) realWorkFeaturedCaption.textContent = image.caption;
+  if (realWorkCarouselLabel) realWorkCarouselLabel.textContent = image.label;
+  if (realWorkImageCounter) realWorkImageCounter.textContent = `${imageIndex + 1} / ${study.images.length}`;
+  if (realWorkProgressFill) {
+    realWorkProgressFill.style.setProperty('--image-progress', `${((imageIndex + 1) / study.images.length) * 100}%`);
+    realWorkProgressFill.parentElement?.style.setProperty('--image-progress', `${((imageIndex + 1) / study.images.length) * 100}%`);
+  }
+  if (realWorkPrev) realWorkPrev.setAttribute('aria-label', `Show previous ${study.title} project image`);
+  if (realWorkNext) realWorkNext.setAttribute('aria-label', `Show next ${study.title} project image`);
+
+  if (galleryLightbox?.open) {
+    updateLightboxImage(study, image);
+  }
+}
+
+function updateLightboxImage(study, image) {
+  if (galleryLightboxImage) {
+    galleryLightboxImage.src = image.src;
+    galleryLightboxImage.alt = image.alt;
+    galleryLightboxImage.width = image.width;
+    galleryLightboxImage.height = image.height;
+  }
+  if (galleryLightboxCaption) {
+    galleryLightboxCaption.textContent = `${study.title} — ${image.label}. ${image.caption}`;
+  }
+  galleryLightboxPrev?.setAttribute('aria-label', `Show previous ${study.title} project image`);
+  galleryLightboxNext?.setAttribute('aria-label', `Show next ${study.title} project image`);
+}
+
+function openGalleryLightbox(projectKey = activeCaseStudyKey, imageIndex = activeCaseStudyImageIndex) {
+  const study = caseStudies[projectKey];
+  const image = study?.images?.[imageIndex];
+  if (!study || !image || !galleryLightbox) return;
+
+  lightboxReturnFocus = realWorkFeatured;
+  setFeaturedCaseStudyImage(projectKey, imageIndex);
+  updateLightboxImage(study, image);
+  if (typeof galleryLightbox.showModal === 'function') {
+    galleryLightbox.showModal();
+  } else {
+    galleryLightbox.setAttribute('open', '');
+  }
+  galleryLightboxClose?.focus();
+}
+
+function closeGalleryLightbox({ announceMessage = false } = {}) {
+  if (!galleryLightbox?.open && !galleryLightbox?.hasAttribute('open')) return;
+  if (typeof galleryLightbox.close === 'function') {
+    galleryLightbox.close();
+  } else {
+    galleryLightbox.removeAttribute('open');
+  }
+  if (announceMessage) announce('Expanded project image closed');
+  if (lightboxReturnFocus?.isConnected) lightboxReturnFocus.focus();
+  lightboxReturnFocus = null;
+}
+
+function renderCaseStudy(projectKey) {
+  const study = caseStudies[projectKey];
+  if (!study) return;
+
+  showCaseStudyDetail();
+  setCaseStudyCardState(projectKey);
+
+  if (realWorkType) realWorkType.textContent = study.cardKicker;
+  if (realWorkTitle) realWorkTitle.textContent = study.title;
+  if (realWorkSummary) realWorkSummary.textContent = study.summary;
+  if (realWorkFeel) realWorkFeel.textContent = study.feel;
+  if (realWorkWhy) realWorkWhy.textContent = study.why;
+  if (realWorkDecisions) realWorkDecisions.textContent = study.decisions;
+
+  if (realWorkChips) {
+    realWorkChips.innerHTML = study.chips
+      .map((chip) => `<span class="real-work-chip">${chip}</span>`)
+      .join('');
+  }
+
+  const project = projects[projectKey];
+  if (realWorkLiveLink && project) {
+    realWorkLiveLink.href = project.url;
+    realWorkLiveLink.setAttribute('aria-label', `Open the ${project.title} live website in a new tab`);
+  }
+
+  setFeaturedCaseStudyImage(projectKey, 0);
+  setLauncherState(projectKey);
+  window.PortfolioMotion?.refresh?.();
+
+  window.requestAnimationFrame(() => {
+    if (activeCaseStudyKey !== projectKey || realWorkDetail?.hidden) return;
+    realWorkDetail?.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'auto' : 'smooth', block: 'start' });
+    realWorkTitle?.focus({ preventScroll: true });
+  });
+}
+
+function setupCaseStudies() {
+  setCaseStudyCardState(null);
+  hideCaseStudyDetail({ clearSelection: false, announceMessage: false });
+
+  caseStudyCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const projectKey = card.dataset.caseStudy;
+      if (!projectKey) return;
+
+      if (projectKey === activeCaseStudyKey && realWorkDetail && !realWorkDetail.hidden) {
+        hideCaseStudyDetail({ clearSelection: true, announceMessage: true });
+        return;
+      }
+
+      caseStudyReturnFocus = card;
+      renderCaseStudy(projectKey);
+      announce(`${caseStudies[projectKey].title} case study opened`);
+    });
+  });
+
+  realWorkDetailClose?.addEventListener('click', () => {
+    hideCaseStudyDetail({ clearSelection: true, announceMessage: true, restoreFocus: true });
+  });
+
+  realWorkPrev?.addEventListener('click', () => {
+    stepCaseStudyImage(-1);
+  });
+
+  realWorkNext?.addEventListener('click', () => {
+    stepCaseStudyImage(1);
+  });
+
+  realWorkFeatured?.addEventListener('click', () => {
+    if (!activeCaseStudyKey) return;
+    openGalleryLightbox(activeCaseStudyKey, activeCaseStudyImageIndex);
+  });
+
+  galleryLightbox?.addEventListener('click', (event) => {
+    if (event.target === galleryLightbox) {
+      closeGalleryLightbox({ announceMessage: true });
+    }
+  });
+
+  galleryLightbox?.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeGalleryLightbox({ announceMessage: true });
+  });
+
+  galleryLightboxClose?.addEventListener('click', () => closeGalleryLightbox({ announceMessage: true }));
+  galleryLightboxPrev?.addEventListener('click', () => stepCaseStudyImage(-1));
+  galleryLightboxNext?.addEventListener('click', () => stepCaseStudyImage(1));
+}
+
+
+function showBrowserOverlay(title, copy) {
+  window.clearTimeout(overlayTimer);
+  browserOverlayTitle && (browserOverlayTitle.textContent = title);
+  browserOverlayCopy && (browserOverlayCopy.textContent = copy);
+  browserOverlay?.classList.remove('is-hidden');
+
+  overlayTimer = window.setTimeout(() => {
+    if (!browserOverlay?.classList.contains('is-hidden')) {
+      browserOverlayTitle && (browserOverlayTitle.textContent = 'Still loading?');
+      browserOverlayCopy && (browserOverlayCopy.textContent = 'If the preview stays blank or a browser policy blocks embedding, open the project in a new tab with the button below.');
+    }
+  }, 3500);
+}
+
+function hideBrowserOverlay() {
+  window.clearTimeout(overlayTimer);
+  browserOverlay?.classList.add('is-hidden');
+}
+
+function showWorkspaceNotification(title, message, icon = 'fa-solid fa-circle-check') {
+  if (!workspaceNotifications || !workspacePowered) return;
+  const notification = document.createElement('div');
+  notification.className = 'workspace-notification';
+  notification.innerHTML = `<i class="${icon}" aria-hidden="true"></i><span><strong></strong><small></small></span><button class="workspace-notification-close" type="button" aria-label="Dismiss notification"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>`;
+  notification.querySelector('strong').textContent = title;
+  notification.querySelector('small').textContent = message;
+  workspaceNotifications.replaceChildren(notification);
+  const dismiss = () => {
+    if (!notification.isConnected || notification.classList.contains('is-leaving')) return;
+    notification.classList.add('is-leaving');
+    window.setTimeout(() => notification.remove(), reducedMotionQuery.matches ? 0 : 320);
+  };
+  notification.querySelector('.workspace-notification-close')?.addEventListener('click', dismiss);
+  window.setTimeout(dismiss, 4200);
+}
+
+function closeProjectWindow({ announceMessage = true, restoreFocus = true } = {}) {
+  const wasVisible = projectWindow?.classList.contains('is-visible');
+  projectWindow?.classList.remove('is-visible', 'is-expanded', 'is-minimized');
+  workspaceDevice?.classList.remove('has-open-project');
+  projectWindow?.setAttribute('aria-hidden', 'true');
+  projectExpand?.setAttribute('aria-pressed', 'false');
+  if (announceMessage && wasVisible) announce('Project window closed');
+  if (wasVisible) playInterfaceSound('close');
+  if (restoreFocus && wasVisible && projectReturnFocus?.isConnected) {
+    projectReturnFocus.focus();
+  }
+  if (wasVisible) projectReturnFocus = null;
+}
+
+function setProject(projectKey, options = {}) {
+  const project = projects[projectKey];
+  if (!project || !workspacePowered) return;
+
+  const { forceReload = false } = options;
+  const nextUrl = project.url;
+  const currentSrc = isBrowserAudit ? (projectFrame?.dataset.requestedSrc || '') : (projectFrame?.getAttribute('src') || '');
+
+  setLauncherState(projectKey);
+  if (projectTitle) projectTitle.textContent = project.title;
+  if (projectKicker) projectKicker.textContent = project.kicker;
+  if (projectAddress) projectAddress.textContent = nextUrl;
+  if (browserOpenButton) {
+    browserOpenButton.href = nextUrl;
+    browserOpenButton.setAttribute('aria-label', `Open the ${project.title} live website in a new tab`);
+  }
+  if (browserFallbackLink) {
+    browserFallbackLink.href = nextUrl;
+    browserFallbackLink.setAttribute('aria-label', `Open the ${project.title} live website in a new tab`);
+  }
+  if (projectFrame) projectFrame.title = `${project.title} live website preview`;
+
+  projectWindow?.classList.remove('is-minimized');
+  projectWindow?.classList.add('is-visible');
+  workspaceDevice?.classList.add('has-open-project');
+  projectWindow?.setAttribute('aria-hidden', 'false');
+
+  const shouldLoad = Boolean(projectFrame && (forceReload || currentSrc !== nextUrl));
+
+  if (shouldLoad) {
+    showBrowserOverlay('Loading live preview…', 'If the preview takes too long or a site blocks embedding, use the button below to open the project directly.');
+    if (isBrowserAudit) {
+      projectFrame.dataset.requestedSrc = nextUrl;
+      projectFrame.src = 'about:blank';
+    } else {
+      projectFrame.src = nextUrl;
+    }
+  } else {
+    hideBrowserOverlay();
+  }
+
+  announce(`${project.title} opened`);
+  playInterfaceSound('select');
+  showWorkspaceNotification(project.title, 'Live project opened', 'fa-solid fa-window-maximize');
+  projectClose?.focus();
+}
+
+function powerOffWorkspace({ restoreFocus = true, announceChange = true } = {}) {
+  if (workspaceRevealTimer) {
+    window.clearTimeout(workspaceRevealTimer);
+    workspaceRevealTimer = null;
+  }
+  if (workspaceCenterTimer) {
+    window.clearTimeout(workspaceCenterTimer);
+    workspaceCenterTimer = null;
+  }
+
+  workspacePowered = false;
+  workspaceStage?.classList.remove('is-revealed');
+  workspaceDevice?.classList.remove('is-powered', 'is-open', 'is-ready', 'has-open-project');
+  workspaceDevice?.setAttribute('aria-hidden', 'true');
+  if (workspaceDevice) workspaceDevice.inert = true;
+  workspaceReveal?.setAttribute('aria-expanded', 'false');
+  closeProjectWindow({ announceMessage: false, restoreFocus: false });
+
+  if (projectFrame) {
+    projectFrame.src = 'about:blank';
+    delete projectFrame.dataset.requestedSrc;
+  }
+
+  if (announceChange) announce('Live workspace closed');
+  if (restoreFocus && workspaceReveal) {
+    window.setTimeout(() => {
+      workspaceReveal.focus({ preventScroll: true });
+      workspaceReveal.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'auto' : 'smooth', block: 'center' });
+    }, reducedMotionQuery.matches ? 0 : 120);
+  }
+}
+
+function powerOnWorkspace() {
+  if (!workspaceDevice?.classList.contains('is-ready')) return;
+  workspacePowered = true;
+  workspaceDevice?.classList.add('is-powered');
+  closeProjectWindow({ announceMessage: false, restoreFocus: false });
+  setLauncherState(activeProjectKey);
+  announce('Live workspace ready');
+  window.setTimeout(() => showWorkspaceNotification('Welcome to Leslie OS', 'Choose a project to explore the live work.'), 420);
+}
+
+function revealWorkspace() {
+  if (!workspaceStage || !workspaceDevice || !workspaceReveal || isTabletMode()) return;
+
+  if (workspaceRevealTimer) window.clearTimeout(workspaceRevealTimer);
+  workspaceStage.classList.add('is-revealed');
+  workspaceDevice.setAttribute('aria-hidden', 'false');
+  workspaceDevice.inert = false;
+  workspaceReveal.setAttribute('aria-expanded', 'true');
+  announce('Opening live workspace');
+  playInterfaceSound('open');
+
+  const centerWorkspace = ({ exact = false } = {}) => {
+    if (exact) {
+      const stageRect = workspaceStage.getBoundingClientRect();
+      const targetTop = window.scrollY + stageRect.top + stageRect.height / 2 - window.innerHeight / 2;
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
+      return;
+    }
+    workspaceStage.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'auto' : 'smooth', block: 'center' });
+  };
+
+  window.requestAnimationFrame(() => {
+    workspaceDevice.classList.add('is-open', 'is-ready');
+    centerWorkspace();
+  });
+
+  workspaceCenterTimer = window.setTimeout(() => {
+    workspaceCenterTimer = null;
+    if (workspaceStage.classList.contains('is-revealed')) centerWorkspace({ exact: true });
+  }, reducedMotionQuery.matches ? 20 : 940);
+
+  workspaceRevealTimer = window.setTimeout(() => {
+    workspaceRevealTimer = null;
+    if (workspaceStage.classList.contains('is-revealed')) workspaceUnlock?.focus({ preventScroll: true });
+  }, reducedMotionQuery.matches ? 20 : 720);
+}
+
+function setupWorkspace() {
+  projectLaunchers.forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!workspacePowered || !button.dataset.project) return;
+      projectReturnFocus = button;
+      setProject(button.dataset.project);
+    });
+  });
+
+  workspaceReveal?.addEventListener('click', revealWorkspace);
+  workspaceUnlock?.addEventListener('click', powerOnWorkspace);
+  workspacePower?.addEventListener('click', () => powerOffWorkspace());
+
+  projectMinimize?.addEventListener('click', () => {
+    projectWindow?.classList.add('is-minimized');
+    projectWindow?.setAttribute('aria-hidden', 'true');
+    workspaceDevice?.classList.remove('has-open-project');
+    announce('Project window minimized');
+    if (projectReturnFocus?.isConnected) projectReturnFocus.focus();
+  });
+
+  projectExpand?.addEventListener('click', () => {
+    projectWindow?.classList.toggle('is-expanded');
+    const expanded = projectWindow?.classList.contains('is-expanded');
+    projectExpand.setAttribute('aria-pressed', String(Boolean(expanded)));
+    announce(expanded ? 'Project window expanded' : 'Project window restored');
+  });
+
+  projectClose?.addEventListener('click', () => {
+    closeProjectWindow({ announceMessage: true, restoreFocus: true });
+  });
+
+  browserReloadButton?.addEventListener('click', () => {
+    if (!activeProjectKey) return;
+    setProject(activeProjectKey, { forceReload: true });
+    announce('Project reloaded');
+  });
+
+  projectFrame?.addEventListener('load', () => {
+    hideBrowserOverlay();
+    announce('Live preview loaded');
+    if (projectWindow?.classList.contains('is-visible')) showWorkspaceNotification('Preview ready', 'The live website has finished loading.');
+  });
+}
+
+function setupMobileNav() {
+  if (!navToggle || !navMenu) return;
+
+  const closeMenu = ({ restoreFocus = false } = {}) => {
+    if (!navMenu.classList.contains('is-open')) return;
+    navMenu.classList.remove('is-open');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-label', 'Open navigation');
+    if (restoreFocus) navToggle.focus();
+  };
+
+  navToggle.addEventListener('click', () => {
+    const wasOpen = navMenu.classList.contains('is-open');
+    if (wasOpen) {
+      closeMenu({ restoreFocus: true });
+      return;
+    }
+
+    navMenu.classList.add('is-open');
+    const open = true;
+    navToggle.setAttribute('aria-expanded', String(open));
+    navToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    navMenu.querySelector('a')?.focus({ preventScroll: true });
+  });
+
+  navMenu.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      closeMenu();
+      const target = qs(link.getAttribute('href'));
+      if (!target) return;
+
+      event.preventDefault();
+      const targetNavKey = link.dataset.nav || link.getAttribute('href').replace('#', '');
+      navSelectionLock = targetNavKey;
+      window.clearTimeout(navSelectionTimer);
+      setActiveNav(targetNavKey);
+      window.history.replaceState(null, '', link.getAttribute('href'));
+      window.scrollTo({
+        top: Math.max(0, target.offsetTop + 32),
+        behavior: reducedMotionQuery.matches ? 'auto' : 'smooth'
+      });
+
+      navSelectionTimer = window.setTimeout(() => {
+        navSelectionLock = null;
+        updateActiveNav();
+        target.focus({ preventScroll: true });
+      }, reducedMotionQuery.matches ? 0 : 700);
+    });
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (!navMenu.classList.contains('is-open')) return;
+    if (navMenu.contains(event.target) || navToggle.contains(event.target)) return;
+    closeMenu();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && navMenu.classList.contains('is-open')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeMenu({ restoreFocus: true });
+    }
+  });
+}
+
+function setupForm() {
+  if (!form || !formSuccess) return;
+
+  const nameField = qs('#contact-name', form);
+  const emailField = qs('#contact-email', form);
+  const typeField = qs('#contact-project-type', form);
+  const messageField = qs('#contact-message', form);
+  const requiredFields = [nameField, emailField, messageField].filter(Boolean);
+
+  const setFieldError = (field, message = '') => {
+    const error = qs(`#${field.id}-error`, form);
+    field.setAttribute('aria-invalid', String(Boolean(message)));
+    field.closest('.form-field')?.classList.toggle('has-error', Boolean(message));
+    if (error) error.textContent = message;
+    return !message;
+  };
+
+  const validateField = (field) => {
+    const value = field.value.trim();
+    if (!value) return setFieldError(field, 'This field is required.');
+    if (field.type === 'email' && field.validity.typeMismatch) {
+      return setFieldError(field, 'Enter a valid email address.');
+    }
+    if (field === messageField && value.length < 10) {
+      return setFieldError(field, 'Add at least 10 characters so Leslie has enough context.');
+    }
+    return setFieldError(field);
+  };
+
+  requiredFields.forEach((field) => {
+    field.addEventListener('blur', () => validateField(field));
+    field.addEventListener('input', () => {
+      if (field.getAttribute('aria-invalid') === 'true') validateField(field);
+      formSuccess.hidden = true;
+      formSuccess.classList.remove('is-visible');
+    });
+  });
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const results = requiredFields.map(validateField);
+    if (results.some((valid) => !valid)) {
+      requiredFields.find((field) => field.getAttribute('aria-invalid') === 'true')?.focus();
+      announce('Please correct the highlighted contact form fields');
+      return;
+    }
+
+    const senderName = nameField.value.trim();
+    const senderEmail = emailField.value.trim();
+    const projectType = typeField?.value || 'Portfolio enquiry';
+    const message = messageField.value.trim();
+    const subject = `${projectType} — portfolio enquiry from ${senderName}`;
+    const body = `Name: ${senderName}\nEmail: ${senderEmail}\nProject type: ${projectType}\n\n${message}`;
+
+    formSuccess.hidden = false;
+    formSuccess.classList.add('is-visible');
+    announce('Opening your email application with the completed draft');
+    window.location.href = `mailto:asamoah.leslie@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+}
+
+function handleScroll() {
+  updateHero();
+}
+
+function requestScrollUpdate() {
+  updateActiveNav();
+  if (scrollTicking) return;
+  scrollTicking = true;
+  window.requestAnimationFrame(() => {
+    handleScroll();
+    scrollTicking = false;
+  });
+}
+
+function setupWorkspaceSystemStatus() {
+  const updateClock = () => {
+    const now = new Date();
+    if (workspaceTime) {
+      const timeText = new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).format(now);
+      workspaceTime.textContent = timeText;
+      if (workspaceLockTime) workspaceLockTime.textContent = timeText;
+    }
+    if (workspaceDate) {
+      workspaceDate.textContent = new Intl.DateTimeFormat('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(now);
+    }
+    if (workspaceLockDate) {
+      workspaceLockDate.textContent = new Intl.DateTimeFormat('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+      }).format(now);
+    }
+  };
+
+  updateClock();
+  window.setInterval(updateClock, 30000);
+
+  if (!workspaceTemperature) return;
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m,weather_code&timezone=Europe%2FLondon')
+    .then((response) => {
+      if (!response.ok) throw new Error('Weather unavailable');
+      return response.json();
+    })
+    .then((weather) => {
+      const temperature = weather?.current?.temperature_2m;
+      const code = Number(weather?.current?.weather_code);
+      if (Number.isFinite(temperature)) {
+        const temperatureText = `${Math.round(temperature)}\u00B0C`;
+        workspaceTemperature.textContent = temperatureText;
+        if (workspaceLockTemperature) workspaceLockTemperature.textContent = temperatureText;
+      }
+      if (workspaceWeatherLabel) {
+        workspaceWeatherLabel.textContent = code <= 1 ? 'Clear' : code <= 3 ? 'Cloudy' : code <= 67 ? 'Rain' : code <= 77 ? 'Snow' : code <= 82 ? 'Showers' : 'London';
+      }
+    })
+    .catch(() => {
+      if (workspaceWeatherLabel) workspaceWeatherLabel.textContent = 'London';
+    });
+}
+
+function setupHeroPointerSpotlight() {
+  if (!heroSection || !heroPointerGlow || reducedMotionQuery.matches || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  heroSection.addEventListener('pointerenter', () => heroSection.classList.add('is-pointer-active'));
+  heroSection.addEventListener('pointerleave', () => heroSection.classList.remove('is-pointer-active'));
+  heroSection.addEventListener('pointermove', (event) => {
+    const rect = heroSection.getBoundingClientRect();
+    const x = clamp((event.clientX - rect.left) / rect.width, 0, 1) * 100;
+    const y = clamp(event.clientY / window.innerHeight, 0, 1) * 100;
+    heroSection.style.setProperty('--hero-pointer-x', `${x}%`);
+    heroSection.style.setProperty('--hero-pointer-y', `${y}%`);
+  }, { passive: true });
+}
+
+function init() {
+  const storedTheme = safeStorage.get(THEME_KEY, 'light');
+
+  setTheme(storedTheme, { announceChange: false });
+  showHeroSlide(0);
+  motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
+  if (!motionEnhanced) {
+    root.classList.add('hero-intro-complete');
+    setupReveal();
+  }
+  setupMarquee();
+  setupShowcaseCarousel();
+  setupCaseStudies();
+  setupWorkspace();
+  setupWorkspaceSystemStatus();
+  setupHeroPointerSpotlight();
+  setupInterfaceSound();
+  setupMobileNav();
+  setupActiveNavigation();
+  setupForm();
+  setLauncherState(activeProjectKey);
+
+  powerOffWorkspace({ restoreFocus: false, announceChange: false });
+  handleScroll();
+
+  themeToggle?.addEventListener('click', () => {
+    setTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      if (navMenu?.classList.contains('is-open')) return;
+
+      if (galleryLightbox?.open) {
+        event.preventDefault();
+        closeGalleryLightbox({ announceMessage: true });
+        return;
+      }
+
+      if (realWorkDetail && !realWorkDetail.hidden) {
+        event.preventDefault();
+        hideCaseStudyDetail({ clearSelection: true, announceMessage: true, restoreFocus: true });
+        return;
+      }
+
+      if (projectWindow?.classList.contains('is-visible')) {
+        event.preventDefault();
+        closeProjectWindow({ announceMessage: true, restoreFocus: true });
+      }
+      return;
+    }
+
+    const galleryKeyboardActive = galleryLightbox?.open || realWorkDetail?.contains(document.activeElement);
+    if (galleryKeyboardActive) {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        stepCaseStudyImage(1);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        stepCaseStudyImage(-1);
+      }
+    }
+  });
+
+  reducedMotionQuery.addEventListener?.('change', (event) => {
+    window.PortfolioMotion?.destroy?.();
+    motionEnhanced = false;
+    if (event.matches) {
+      stopHeroSlideshow();
+      setMarqueePaused(true, { announceChange: false });
+    } else {
+      motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
+      setMarqueePaused(false, { announceChange: false });
+    }
+    updateShowcaseAutoplayControl();
+    restartShowcaseAutoplay();
+    updateHero();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopHeroSlideshow();
+      clearShowcaseAutoplayTimer();
+    } else {
+      updateHero();
+      scheduleShowcaseAutoplay();
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', init, { once: true });
+} else {
+  init();
+}
+
+window.addEventListener('scroll', requestScrollUpdate, { passive: true });
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 820 && navMenu?.classList.contains('is-open')) {
+    navMenu.classList.remove('is-open');
+    navToggle?.setAttribute('aria-expanded', 'false');
+    navToggle?.setAttribute('aria-label', 'Open navigation');
+  }
+
+  if (isTabletMode() && workspaceStage?.classList.contains('is-revealed')) {
+    powerOffWorkspace({ restoreFocus: false, announceChange: false });
+  }
+
+  window.PortfolioMotion?.refresh?.();
+  updateShowcaseFromScroll();
+  requestScrollUpdate();
+}, { passive: true });
+
+})();

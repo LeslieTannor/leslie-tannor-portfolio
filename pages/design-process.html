@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The design principles behind Leslie Tannor's UI/UX portfolio.">
+  <title>Design Process | Leslie Tannor</title>
+  <link rel="icon" type="image/png" href="../logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="process-page-body">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-shell">
+      <a href="../index.html#about" class="brand" aria-label="Return to Leslie Tannor's portfolio">
+        <span class="brand-mark brand-mark--logo">
+          <img src="../logo.png" alt="" class="site-logo-image" width="1254" height="1254">
+        </span>
+        <span class="brand-copy">
+          <strong>Leslie Tannor</strong>
+          <small>Design × technical systems</small>
+        </span>
+      </a>
+      <a class="process-page-back" href="../index.html#process" aria-label="Back to portfolio"><span aria-hidden="true">←</span> Portfolio</a>
+    </div>
+  </header>
+
+  <main id="main-content" class="process-page-main" tabindex="-1">
+    <div class="process-page-progress" id="process-page-progress" aria-hidden="true"><span id="process-page-progress-current">01</span><i></i><span>04</span></div>
+    <section class="process-page-hero" aria-labelledby="process-page-heading">
+      <div class="container process-page-hero-inner">
+        <p class="eyebrow">Design process</p>
+        <h1 id="process-page-heading">Clear thinking.<br>Considered execution.</h1>
+        <p class="process-page-lede">A practical approach for turning an idea into a useful, coherent digital product&mdash;from the first question to the final interaction.</p>
+        <div class="process-page-summary" aria-label="Process summary">
+          <span><strong>01</strong> Define the purpose</span>
+          <span><strong>02</strong> Build the system</span>
+          <span><strong>03</strong> Refine the experience</span>
+          <span><strong>04</strong> Validate in use</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="container process-page-grid" aria-label="Portfolio design principles">
+      <article class="process-page-card">
+        <span class="process-page-number">01</span>
+        <div class="process-page-card-copy"><p class="eyebrow">Intent</p><h2>Start with purpose.</h2><p>Before choosing a layout or visual style, I clarify what the experience needs to communicate and what the person using it needs to accomplish.</p></div>
+        <ul><li>Define the audience and outcome</li><li>Establish content priority</li><li>Remove anything without a clear role</li></ul>
+        <p class="process-page-example"><strong>In practice</strong><span>Akwaaba House leads with atmosphere and booking intent, keeping the restaurant story focused on a clear visitor journey.</span></p>
+      </article>
+      <article class="process-page-card">
+        <span class="process-page-number">02</span>
+        <div class="process-page-card-copy"><p class="eyebrow">Systems</p><h2>Connect design and implementation.</h2><p>Visual decisions become reusable rules for spacing, typography, interaction, accessibility, and responsive behaviour.</p></div>
+        <ul><li>Design repeatable components</li><li>Prototype meaningful interactions</li><li>Test technical constraints early</li></ul>
+        <p class="process-page-example"><strong>In practice</strong><span>GoldBar Fitness uses a repeatable visual system across classes, membership, commerce, and coaching journeys.</span></p>
+      </article>
+      <article class="process-page-card">
+        <span class="process-page-number">03</span>
+        <div class="process-page-card-copy"><p class="eyebrow">Finish</p><h2>Refine the complete experience.</h2><p>The final pass is about coherence: every state should feel responsive, intentional, and connected to the product as a whole.</p></div>
+        <ul><li>Polish motion and feedback</li><li>Check keyboard and screen sizes</li><li>Make the first interaction memorable</li></ul>
+        <p class="process-page-example"><strong>In practice</strong><span>WealthWise carries one calm interaction language through budgeting, savings, goals, and financial planning.</span></p>
+      </article>
+      <article class="process-page-card">
+        <span class="process-page-number">04</span>
+        <div class="process-page-card-copy"><p class="eyebrow">Validate</p><h2>Test it in the real world.</h2><p>A polished interface still needs evidence. I check how the experience performs with real content, real devices, and the people it was designed to support.</p></div>
+        <ul><li>Test usability and accessibility</li><li>Measure speed and reliability</li><li>Learn, adjust, and improve</li></ul>
+        <p class="process-page-example"><strong>In practice</strong><span>This portfolio is continually checked across screen sizes, keyboard flows, motion preferences, and live-project constraints.</span></p>
+      </article>
+    </section>
+
+    <section class="process-page-return" aria-label="Return to portfolio">
+      <p class="eyebrow">Continue exploring</p>
+      <h2>See the principles in the work.</h2>
+      <a class="process-page-return-link" href="../index.html#work">Back to selected work <span aria-hidden="true">&rarr;</span></a>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const cards = [...document.querySelectorAll('.process-page-card')];
+      const current = document.querySelector('#process-page-progress-current');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+      document.documentElement.classList.add('process-motion-ready');
+
+      if (!reduced && 'IntersectionObserver' in window) {
+        const revealObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('is-process-visible');
+            revealObserver.unobserve(entry.target);
+          });
+        }, { threshold: .16 });
+        cards.forEach((card) => revealObserver.observe(card));
+
+        const progressObserver = new IntersectionObserver((entries) => {
+          const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (visible && current) current.textContent = String(cards.indexOf(visible.target) + 1).padStart(2, '0');
+        }, { threshold: [.25, .5, .75] });
+        cards.forEach((card) => progressObserver.observe(card));
+      } else {
+        cards.forEach((card) => card.classList.add('is-process-visible'));
+      }
+
+      if (finePointer && !reduced) cards.forEach((card) => {
+        card.addEventListener('pointermove', (event) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--card-light-x', `${event.clientX - rect.left}px`);
+          card.style.setProperty('--card-light-y', `${event.clientY - rect.top}px`);
+        }, { passive: true });
+      });
+    })();
+  </script>
+</body>
+</html>
