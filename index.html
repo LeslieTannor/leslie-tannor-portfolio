@@ -38,17 +38,17 @@
         <span class="nav-active-pill" aria-hidden="true"></span>
         <a href="#work" data-nav="work">Projects</a>
         <a href="#workspace" data-nav="workspace">Work</a>
-        <a href="pages/design-process.html">Principles</a>
         <a href="#experience" data-nav="experience">Experience</a>
-        <a href="pages/cv.html">Career</a>
         <a href="#contact" data-nav="contact">Contact</a>
+        <a href="pages/cv.html">Career</a>
+        <a href="#socials" data-nav="socials">Socials</a>
       </nav>
     </div>
   </header>
 
   <div class="floating-tools" role="group" aria-label="Display controls">
     <button id="theme-toggle" class="tool-btn" type="button" aria-label="Toggle theme" aria-pressed="false">
-      <i class="fa-solid fa-moon"></i>
+      <i class="fa-solid fa-moon" aria-hidden="true"></i>
     </button>
     <button class="tool-btn motion-toggle" type="button" aria-label="Pause background motion" aria-pressed="false">
       <i class="fa-solid fa-pause" aria-hidden="true"></i>
@@ -510,10 +510,12 @@
 
     <section id="contact" class="contact-section reveal" data-nav="contact" aria-labelledby="contact-heading" tabindex="-1">
       <div class="container contact-shell">
-        <div class="contact-head section-heading-panel"><p class="eyebrow">Start a conversation</p><h2 id="contact-heading">Have a product, website, or idea in mind?</h2><p>This form creates an email draft in your own email application. Nothing is sent or stored by this website.</p><a href="mailto:asamoah.leslie@gmail.com">asamoah.leslie@gmail.com</a></div>
+        <div class="contact-head section-heading-panel"><p class="eyebrow">Start a conversation</p><h2 id="contact-heading">Have a product, website, or idea in mind?</h2><p>Send the details directly and I&rsquo;ll reply to the email address you provide.</p><a href="mailto:asamoah.leslie@gmail.com">asamoah.leslie@gmail.com</a></div>
         <div class="contact-panel">
-          <form class="contact-form" action="mailto:asamoah.leslie@gmail.com" method="post" enctype="text/plain" novalidate>
-            <p id="contact-instructions" class="contact-instructions">Required fields are marked with an asterisk. Submitting opens a prefilled email draft in your default email application.</p>
+          <form class="contact-form" name="portfolio-contact" action="/" method="post" data-netlify="true" data-netlify-honeypot="bot-field" novalidate>
+            <input type="hidden" name="form-name" value="portfolio-contact">
+            <p class="form-honeypot" aria-hidden="true"><label>Do not complete this field <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+            <p id="contact-instructions" class="contact-instructions">Required fields are marked with an asterisk. Your message is sent securely through Netlify Forms.</p>
             <div class="contact-field-grid">
               <div class="form-field form-field--floating">
                 <input id="contact-name" name="name" type="text" placeholder=" " autocomplete="name" aria-describedby="contact-name-error" aria-invalid="false" required>
@@ -540,8 +542,8 @@
               <label for="contact-message">Tell me about the idea <span aria-hidden="true">*</span><span class="sr-only"> required</span></label>
               <span class="form-error" id="contact-message-error" aria-live="polite"></span>
             </div>
-            <div class="contact-bar"><div class="contact-options"><span><i class="fa-regular fa-object-group" aria-hidden="true"></i> Design + build</span><span><i class="fa-regular fa-envelope" aria-hidden="true"></i> Opens email draft</span></div><button class="create-btn" type="submit">Open email draft <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></button></div>
-            <p id="form-success" class="form-success" role="status" aria-live="polite" hidden>Your email application should open with the completed draft. The website has not sent or stored your details.</p>
+            <div class="contact-bar"><div class="contact-options"><span><i class="fa-regular fa-object-group" aria-hidden="true"></i> Design + build</span><span><i class="fa-regular fa-envelope" aria-hidden="true"></i> Direct message</span></div><button class="create-btn" type="submit">Send message <i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button></div>
+            <p id="form-success" class="form-success" role="status" aria-live="polite" hidden></p>
           </form>
         </div>
       </div>
@@ -549,7 +551,7 @@
 
     <div class="section-spacer" aria-hidden="true"></div>
 
-    <section class="social-section reveal" aria-labelledby="social-heading">
+    <section id="socials" class="social-section reveal" data-nav="socials" aria-labelledby="social-heading" tabindex="-1">
       <div class="container social-shell">
         <div class="section-head section-heading-panel"><p class="eyebrow">Elsewhere online</p><h2 id="social-heading">Follow the work beyond the portfolio.</h2><p>Design experiments, video collections, source code, and professional updates.</p></div>
         <div class="social-grid">

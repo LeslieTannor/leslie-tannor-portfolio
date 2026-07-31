@@ -337,7 +337,7 @@ try {
   Assert-Audit ($structure.showcaseBackground -match '223, 243, 255' -and $structure.workspaceBackground -match '223, 243, 255') 'The project showcase and laptop workspace do not share the pale MacBook-Air blue palette.'
   Assert-Audit ([math]::Abs($structure.marqueeGroups[0] - $structure.marqueeGroups[1]) -lt 1) 'Ticker duplicate groups have different widths.'
   Assert-Audit ($structure.marqueeGap -lt 1) "Ticker has a visible inter-group gap of $($structure.marqueeGap) px."
-  Assert-Audit (($structure.navHrefs -join ',') -eq '#work,#workspace,#process,#experience,#contact') "Navigation href order or targets are incorrect: $($structure.navHrefs -join ',')."
+  Assert-Audit (($structure.navHrefs -join ',') -eq '#work,#workspace,#experience,#contact,pages/cv.html,#socials') "Navigation href order or targets are incorrect: $($structure.navHrefs -join ',')."
 
   $toggles = Invoke-PageScript -Expression @'
 (() => {
@@ -408,7 +408,7 @@ try {
   Assert-Audit ($contactForm.valid -and $contactForm.noValidate -and ($contactForm.autocomplete -join ',') -eq 'name,email') 'Contact form validity, custom-validation, or autocomplete metadata is incorrect.'
   Assert-Audit (@($contactForm.describedBy | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -eq 0) 'A contact field is not associated with instructions or an error message.'
   Assert-Audit ($contactForm.selectStyles.optionColor -ne $contactForm.selectStyles.optionBackground -and $contactForm.selectStyles.optionColor -eq 'rgb(20, 25, 35)') 'Contact dropdown options do not use a visible light-theme text colour.'
-  Assert-Audit ($contactForm.submitHeight -ge 44 -and $contactForm.disclosure -match 'email draft') 'Contact action is too small or its truthful mail-draft disclosure is missing.'
+  Assert-Audit ($contactForm.submitHeight -ge 44 -and $contactForm.disclosure -match 'Netlify Forms') 'Contact action is too small or its Netlify submission disclosure is missing.'
   $auditSummary.Add('Contact-form validation completed.')
 
   $performance = Invoke-PageScript -Expression @'
@@ -444,7 +444,7 @@ try {
 (async () => {
   document.documentElement.style.scrollBehavior = 'auto';
   document.activeElement?.blur();
-  const tests = [['work','work'], ['workspace','workspace'], ['experience','experience'], ['contact','contact']];
+  const tests = [['work','work'], ['workspace','workspace'], ['experience','experience'], ['contact','contact'], ['socials','socials']];
   const states = [];
   const activeKeys = () => [...document.querySelectorAll('#nav-menu .is-active')].map(link => link.dataset.nav);
   const currentKeys = () => [...document.querySelectorAll('#nav-menu [aria-current="location"]')].map(link => link.dataset.nav);

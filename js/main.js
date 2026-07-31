@@ -1586,7 +1586,15 @@ function setupForm() {
   const emailField = qs('#contact-email', form);
   const typeField = qs('#contact-project-type', form);
   const messageField = qs('#contact-message', form);
+  const submitButton = qs('button[type="submit"]', form);
   const requiredFields = [nameField, emailField, messageField].filter(Boolean);
+
+  const showFormStatus = (message, { error = false } = {}) => {
+    formSuccess.textContent = message;
+    formSuccess.hidden = false;
+    formSuccess.classList.add('is-visible');
+    formSuccess.classList.toggle('is-error', error);
+  };
 
   const setFieldError = (field, message = '') => {
     const error = qs(`#${field.id}-error`, form);
@@ -1613,11 +1621,11 @@ function setupForm() {
     field.addEventListener('input', () => {
       if (field.getAttribute('aria-invalid') === 'true') validateField(field);
       formSuccess.hidden = true;
-      formSuccess.classList.remove('is-visible');
+      formSuccess.classList.remove('is-visible', 'is-error');
     });
   });
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const results = requiredFields.map(validateField);
     if (results.some((valid) => !valid)) {
@@ -1626,17 +1634,34 @@ function setupForm() {
       return;
     }
 
-    const senderName = nameField.value.trim();
-    const senderEmail = emailField.value.trim();
-    const projectType = typeField?.value || 'Portfolio enquiry';
-    const message = messageField.value.trim();
-    const subject = `${projectType} — portfolio enquiry from ${senderName}`;
-    const body = `Name: ${senderName}\nEmail: ${senderEmail}\nProject type: ${projectType}\n\n${message}`;
+    const originalButtonMarkup = submitButton?.innerHTML;
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.innerHTML = 'Sending&hellip; <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
+    }
+    announce('Sending your message');
 
-    formSuccess.hidden = false;
-    formSuccess.classList.add('is-visible');
-    announce('Opening your email application with the completed draft');
-    window.location.href = `mailto:asamoah.leslie@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(new FormData(form)).toString()
+      });
+      if (!response.ok) throw new Error(`Netlify Forms returned ${response.status}`);
+
+      form.reset();
+      requiredFields.forEach((field) => setFieldError(field));
+      showFormStatus('Thanks — your message has been sent. I’ll get back to you as soon as I can.');
+      announce('Your message was sent successfully');
+    } catch {
+      showFormStatus('Your message could not be sent. Please try again, or email me directly using the address beside the form.', { error: true });
+      announce('Your message could not be sent');
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonMarkup;
+      }
+    }
   });
 }
 
