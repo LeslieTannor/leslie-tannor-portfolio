@@ -1883,3 +1883,115 @@ p { text-wrap: pretty; }
   .cv-project-proof > div { grid-template-columns: repeat(3, 1fr); }
   .cv-project-proof a { min-height: 0; padding: 3mm; border: 1px solid #aaa; color: #111; }
 }
+
+/* Mobile reliability pass
+   Keep navigation, long headings and the process layout usable at narrow
+   phone widths. These rules intentionally live after the desktop page polish
+   so mobile declarations win the cascade. */
+@media (max-width: 820px) {
+  .header-shell {
+    width: calc(100% - 1rem);
+  }
+
+  .nav-menu {
+    max-height: calc(100dvh - var(--header-h) - 1.5rem);
+    overflow-y: auto;
+    border-color: rgba(255, 255, 255, .55);
+    background:
+      linear-gradient(135deg, rgba(13, 22, 32, .96), rgba(46, 68, 78, .92));
+    color: #fff;
+    box-shadow:
+      inset 0 1px rgba(255, 255, 255, .42),
+      0 1rem 2.5rem rgba(4, 12, 24, .32);
+    -webkit-backdrop-filter: blur(1.5rem) saturate(145%);
+    backdrop-filter: blur(1.5rem) saturate(145%);
+  }
+
+  .nav-menu a,
+  .nav-menu a:hover {
+    color: rgba(255, 255, 255, .9);
+    text-shadow: none;
+  }
+
+  .nav-menu a.is-active {
+    background: rgba(255, 255, 255, .94);
+    color: #11151b;
+  }
+
+  .floating-tools {
+    right: max(.5rem, env(safe-area-inset-right));
+    bottom: max(.5rem, env(safe-area-inset-bottom));
+    flex-direction: column;
+    gap: .2rem;
+    padding: .25rem;
+  }
+
+  .floating-tools .tool-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  /* The desktop selector includes `.container` and otherwise overrides the
+     earlier one-column mobile declaration. */
+  .process-page-grid,
+  .process-page-grid.container {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: .4rem;
+  }
+
+  .process-page-card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .process-page-card-copy,
+  .process-page-card ul,
+  .process-page-example {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .process-page-card h2 {
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+
+  .process-page-card li,
+  .process-page-example span {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 620px) {
+  .process-page-card {
+    min-height: auto;
+    padding: 5rem 1.25rem 2rem;
+  }
+
+  .process-page-card h2 {
+    font-size: clamp(2.45rem, 12vw, 3.45rem);
+    line-height: .94;
+  }
+
+  .process-page-card-copy > p:last-child {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .process-page-card li {
+    font-size: .9rem;
+    line-height: 1.45;
+  }
+
+  .process-page-example span {
+    font-size: .86rem;
+  }
+
+  /* Reserve room so persistent accessibility controls never cover the final
+     actionable content at the bottom of a page. */
+  body {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+}

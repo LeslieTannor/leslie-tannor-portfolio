@@ -837,6 +837,11 @@ try {
   clientWidth:document.documentElement.clientWidth,
   returnHref:document.querySelector('.process-page-return-link')?.getAttribute('href'),
   motionControlCount:document.querySelectorAll('.motion-toggle').length,
+  processColumns:getComputedStyle(document.querySelector('.process-page-grid')).gridTemplateColumns,
+  cardBounds:[...document.querySelectorAll('.process-page-card')].map(card => {
+    const rect = card.getBoundingClientRect();
+    return {left:rect.left, right:rect.right, width:rect.width};
+  }),
   errors:window.__portfolioAuditErrors || []
 }))()
 '@
@@ -844,6 +849,10 @@ try {
     Assert-Audit ($designPage.scrollWidth -le ($designPage.clientWidth + 1)) "$($designViewport.Width) px design-process page has horizontal overflow."
     Assert-Audit ($designPage.returnHref -eq '../index.html#work') 'Design-process return link is incorrect.'
     Assert-Audit ($designPage.motionControlCount -eq 1) 'Design-process page is missing its background-motion control.'
+    if ($designViewport.Width -le 620) {
+      $cardsFit = @($designPage.cardBounds | Where-Object { $_.left -lt -1 -or $_.right -gt ($designViewport.Width + 1) }).Count -eq 0
+      Assert-Audit ($designPage.processColumns -notmatch '\s' -and $cardsFit) "$($designViewport.Width) px design-process cards are not a single fitted column."
+    }
     Assert-Audit (@($designPage.errors).Count -eq 0) "$($designViewport.Width) px design-process page reported JavaScript errors."
     Save-CurrentScreenshot -Name "design-process-$($designViewport.Width)"
   }
