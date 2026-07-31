@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="The design principles behind Leslie Tannor's UI/UX portfolio.">
+  <meta name="theme-color" content="#ffffff">
   <title>Design Process | Leslie Tannor</title>
   <link rel="icon" type="image/png" href="../logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="../css/style.css">
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem('leslie-theme-clean-v17')==='dark'?'dark':'light'}catch{}</script>
 </head>
 <body class="process-page-body">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -25,13 +28,24 @@
           <small>Design × technical systems</small>
         </span>
       </a>
-      <a class="process-page-back" href="../index.html#process" aria-label="Back to portfolio"><span aria-hidden="true">←</span> Portfolio</a>
+      <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Open navigation" aria-controls="nav-menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      <nav id="nav-menu" class="nav-menu" aria-label="Primary navigation">
+        <a href="../index.html#about">Home</a>
+        <a href="cv.html">Career</a>
+      </nav>
     </div>
   </header>
+
+  <div class="floating-tools" role="group" aria-label="Theme control">
+    <button id="theme-toggle" class="tool-btn" type="button" aria-label="Use dark theme" aria-pressed="false"><i class="fa-solid fa-moon" aria-hidden="true"></i></button>
+  </div>
 
   <main id="main-content" class="process-page-main" tabindex="-1">
     <div class="process-page-progress" id="process-page-progress" aria-hidden="true"><span id="process-page-progress-current">01</span><i></i><span>04</span></div>
     <section class="process-page-hero" aria-labelledby="process-page-heading">
+      <video class="process-page-hero-video" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
+        <source src="../media/blue-silk-hero.mp4" type="video/mp4">
+      </video>
       <div class="container process-page-hero-inner">
         <p class="eyebrow">Design process</p>
         <h1 id="process-page-heading">Clear thinking.<br>Considered execution.</h1>
@@ -78,6 +92,7 @@
       <a class="process-page-return-link" href="../index.html#work">Back to selected work <span aria-hidden="true">&rarr;</span></a>
     </section>
   </main>
+  <script src="../js/theme.js"></script>
   <script>
     (() => {
       const cards = [...document.querySelectorAll('.process-page-card')];
@@ -112,6 +127,19 @@
           card.style.setProperty('--card-light-y', `${event.clientY - rect.top}px`);
         }, { passive: true });
       });
+
+      const navToggle = document.querySelector('#nav-toggle');
+      const navMenu = document.querySelector('#nav-menu');
+      navToggle?.addEventListener('click', () => {
+        const open = navMenu?.classList.toggle('is-open') || false;
+        navToggle.setAttribute('aria-expanded', String(open));
+        navToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+      });
+      navMenu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
+        navMenu.classList.remove('is-open');
+        navToggle?.setAttribute('aria-expanded', 'false');
+        navToggle?.setAttribute('aria-label', 'Open navigation');
+      }));
     })();
   </script>
 </body>

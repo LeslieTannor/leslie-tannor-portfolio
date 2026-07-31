@@ -65,6 +65,11 @@
         opacity: 1,
         duration: .48
       }, '>.04')
+      .to('.hero-socials', {
+        y: 0,
+        opacity: 1,
+        duration: .42
+      }, '>.04')
       .to('.hero-device-wrap', { opacity: 1, duration: .85 }, '>.08');
   }
 
@@ -83,11 +88,6 @@
       scrollTrigger: { trigger: '.transition-section', start: 'top bottom', end: 'center center', scrub: .65 }
     });
 
-    gsap.to('.footer-word', {
-      yPercent: -8,
-      ease: 'none',
-      scrollTrigger: { trigger: '.site-footer', start: 'top bottom', end: 'bottom bottom', scrub: .8 }
-    });
   }
 
   function setupCardDepth(gsap) {

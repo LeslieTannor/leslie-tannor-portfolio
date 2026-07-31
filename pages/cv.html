@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive CV for Leslie Asamoah Tannor, Enterprise Support Engineer and developing UI/UX designer.">
+  <meta name="theme-color" content="#ffffff">
+  <title>Interactive CV | Leslie Tannor</title>
+  <link rel="icon" type="image/png" href="../logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <script>document.documentElement.classList.add('cv-js');try{document.documentElement.dataset.theme=localStorage.getItem('leslie-theme-clean-v17')==='dark'?'dark':'light'}catch{}</script>
+</head>
+<body class="cv-page-body">
+  <a class="skip-link" href="#cv-main">Skip to CV</a>
+  <div class="sr-only" id="cv-status" aria-live="polite"></div>
+
+  <header class="site-header cv-site-header">
+    <div class="container header-shell">
+      <a href="../index.html#about" class="brand" aria-label="Leslie Tannor home">
+        <span class="brand-mark brand-mark--logo"><img src="../logo.png" alt="" class="site-logo-image" width="1254" height="1254"></span>
+        <span class="brand-copy"><strong>Leslie Tannor</strong><small>Design &times; technical systems</small></span>
+      </a>
+      <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Open navigation" aria-controls="nav-menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      <nav id="nav-menu" class="nav-menu" aria-label="Primary navigation">
+        <a href="../index.html#about">Home</a>
+        <a href="design-process.html">Principles</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="floating-tools" role="group" aria-label="Theme control">
+    <button id="theme-toggle" class="tool-btn" type="button" aria-label="Use dark theme" aria-pressed="false"><i class="fa-solid fa-moon" aria-hidden="true"></i></button>
+  </div>
+
+  <main id="cv-main" class="cv-main" tabindex="-1">
+    <section class="cv-hero" aria-labelledby="cv-title">
+      <div class="cv-hero-copy">
+        <p class="eyebrow">Interactive curriculum vitae</p>
+        <h1 id="cv-title">Leslie Asamoah<br>Tannor.</h1>
+        <p class="cv-role">Enterprise Support Engineer <span>&times;</span> SaaS Support <span>&times;</span> UI/UX in progress</p>
+        <p class="cv-profile">Enterprise Support Engineer with over three years of experience supporting ConnexAI/CXM SaaS environments across 1st-line and enterprise support. I combine calm incident ownership, SQL-led investigation, Linux troubleshooting, clear client communication, and a Software Engineering foundation with a growing UI/UX practice.</p>
+        <div class="cv-contact-links">
+          <a href="mailto:asamoah.leslie@gmail.com"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Email</a>
+          <a href="https://www.linkedin.com/in/leslie-asamoah-tannor-863aa3a6" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-linkedin-in" aria-hidden="true"></i> LinkedIn</a>
+          <a href="https://github.com/LeslieTannor" target="_blank" rel="noopener noreferrer"><img src="../assets/brands/github.svg" alt="" width="20" height="20"> GitHub</a>
+          <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Manchester, UK</span>
+          <button class="cv-save-action" type="button" id="cv-print"><i class="fa-solid fa-download" aria-hidden="true"></i> Save CV as PDF</button>
+        </div>
+      </div>
+      <aside class="cv-at-a-glance" aria-label="Career summary">
+        <span><strong class="cv-stat" data-stat="count" data-final="3" data-suffix="+">0</strong><small>years in SaaS support</small></span>
+        <span><strong class="cv-stat" data-stat="ordinal">1st</strong><small>line enterprise position</small></span>
+        <span><strong class="cv-stat cv-stat--ratio" data-stat="ratio"><i>2</i><i>:</i><i>1</i></strong><small>BSc Software Engineering</small></span>
+        <span><strong class="cv-stat" data-stat="count" data-final="3">0</strong><small>live portfolio products</small></span>
+      </aside>
+    </section>
+
+    <nav class="cv-section-nav" aria-label="CV sections">
+      <a href="#cv-experience">Experience</a><a href="#cv-skills">Skills</a><a href="#cv-education">Education</a><a href="#cv-development">Development</a>
+    </nav>
+
+    <section class="cv-section cv-experience" id="cv-experience" aria-labelledby="cv-experience-title">
+      <div class="cv-section-heading"><p class="eyebrow">Professional experience</p><h2 id="cv-experience-title">Support experience with evidence behind it.</h2><p>Select a role to see responsibilities, achievements, and the tools used.</p></div>
+      <div class="cv-timeline">
+        <details class="cv-role-card" open data-skill-map="support data systems integrations">
+          <summary><span class="cv-company-logo"><img src="../images/connex_one.jpg" alt="ConnexAI" width="200" height="200"></span><span><strong>Enterprise Support Engineer</strong><small>ConnexAI &middot; September 2024&ndash;Present</small></span><i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+          <div class="cv-role-detail">
+            <div><h3>Enterprise / 2nd-line position</h3><p>I respond to user inquiries, incidents, and service requests, providing timely and accurate solutions for hardware, software, application, network, reporting, integration, and telephony-related issues. I act as the first point of contact for complex technical problems escalated from 1st-line support.</p></div>
+            <div><h3>Troubleshooting and resolution</h3><p>I analyse, diagnose, and resolve problems through a structured investigation using SQL, PostgreSQL, MySQL, Linux/SSH, platform evidence, admin tooling, and remote troubleshooting. Unresolved backend issues are escalated to infrastructure or development with clear reproduction steps and client impact.</p></div>
+            <div><h3>Documentation and knowledge sharing</h3><p>I maintain accurate ticket records, technical findings, solutions, and troubleshooting steps. I contribute to knowledge-base guidance, user documentation, and repeatable procedures that improve support quality and team efficiency.</p></div>
+            <ul><li>Own incidents from triage and evidence gathering through escalation, communication, and resolution.</li><li>Investigate campaigns, queues, extensions, recordings, Asterisk/PJSIP, voice nodes, reporting, and data mapping.</li><li>Work with JSON/JSONata, API and endpoint checks, HubSpot, Power Automate, and integration scenarios.</li></ul>
+            <div class="cv-role-tools"><span>PostgreSQL</span><span>MySQL</span><span>Linux/SSH</span><span>JSONata</span><span>APIs</span><span>HubSpot</span></div>
+          </div>
+        </details>
+
+        <details class="cv-role-card" data-skill-map="support systems"><summary><span class="cv-company-logo"><img src="../images/connex_one.jpg" alt="ConnexAI" width="200" height="200"></span><span><strong>1st Line Support Engineer</strong><small>ConnexAI &middot; March 2023&ndash;October 2024</small></span><i class="fa-solid fa-plus" aria-hidden="true"></i></summary><div class="cv-role-detail"><p>Supported clients by phone, email, live chat, and portal from initial triage through resolution or escalation. Monitored system health, maintained evidence-rich tickets, used remote sessions, and guided clients through fixes and Knowledge Base material.</p><ul><li>Captured screenshots, reproduction steps, and impact notes.</li><li>Escalated complex backend issues with actionable evidence.</li><li>Balanced technical accuracy with calm customer communication.</li></ul><div class="cv-role-tools"><span>Zendesk</span><span>Remote support</span><span>Monitoring</span><span>Knowledge base</span></div></div></details>
+        <details class="cv-role-card" data-skill-map="development support"><summary><span class="cv-company-logo"><img src="../images/it_career_switch.jpg" alt="IT Career Switch" width="200" height="200"></span><span><strong>Trainee</strong><small>IT Career Switch &middot; May 2022&ndash;March 2023</small></span><i class="fa-solid fa-plus" aria-hidden="true"></i></summary><div class="cv-role-detail"><p>Completed structured technical-support and software-development training across operating systems, networking, troubleshooting, support processes, and practical problem solving.</p></div></details>
+        <details class="cv-role-card" data-skill-map="communication"><summary><span class="cv-company-logo"><img src="../images/tesco-express.png" alt="Tesco Express" width="600" height="600"></span><span><strong>Customer Service Representative</strong><small>Tesco &middot; March 2018&ndash;March 2023</small></span><i class="fa-solid fa-plus" aria-hidden="true"></i></summary><div class="cv-role-detail"><p>Delivered customer service in a high-volume environment and worked as a Step-up colleague supporting shift leadership, accuracy, standards, and day-to-day issue resolution.</p></div></details>
+        <details class="cv-role-card" data-skill-map="communication support"><summary><span class="cv-company-logo"><img src="../images/pmp_recruitment.jpg" alt="PMP Recruitment" width="407" height="270"></span><span><strong>Contact Centre Agent</strong><small>PMP Recruitment &middot; August&ndash;December 2018</small></span><i class="fa-solid fa-plus" aria-hidden="true"></i></summary><div class="cv-role-detail"><p>Supported Amazon recruitment activity by contacting applicants, providing clear location and interview guidance, and maintaining a professional contact-centre experience.</p></div></details>
+        <details class="cv-role-card" data-skill-map="design communication"><summary><span class="cv-company-logo"><img src="../images/globe_communication.jpg" alt="Globe Communication" width="100" height="52"></span><span><strong>Graphic Designer</strong><small>Globe Communication &middot; July 2015&ndash;October 2017</small></span><i class="fa-solid fa-plus" aria-hidden="true"></i></summary><div class="cv-role-detail"><p>Designed logos, banners, and client-facing visual assets, building an early foundation in visual communication and translating feedback into finished work.</p></div></details>
+      </div>
+    </section>
+
+    <section class="cv-section cv-skills" id="cv-skills" aria-labelledby="cv-skills-title">
+      <div class="cv-section-heading"><p class="eyebrow">Skills explorer</p><h2 id="cv-skills-title">Filter the technical toolkit.</h2><p>Choose a category, then expand any skill for context.</p></div>
+      <div class="cv-skill-filters" role="group" aria-label="Filter skills"><button class="is-active" type="button" data-skill-filter="all" aria-pressed="true">All</button><button type="button" data-skill-filter="support" aria-pressed="false">Support</button><button type="button" data-skill-filter="data" aria-pressed="false">Data</button><button type="button" data-skill-filter="systems" aria-pressed="false">Systems</button><button type="button" data-skill-filter="integrations" aria-pressed="false">Integrations</button><button type="button" data-skill-filter="development" aria-pressed="false">Development</button></div>
+      <div class="cv-skill-grid">
+        <details class="cv-skill" data-skill-category="integrations support"><summary><img src="../assets/brands/postman.svg" alt="" width="28" height="28"><span>Postman API</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Endpoint validation, request testing, response inspection, and API-led troubleshooting.</p></details>
+        <details class="cv-skill" data-skill-category="data support"><summary><img src="../assets/brands/postgresql.svg" alt="" width="28" height="28"><span>PostgreSQL</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Daily query validation, reporting investigation, data mapping, and evidence-led issue diagnosis.</p></details>
+        <details class="cv-skill" data-skill-category="data support"><summary><img src="../assets/brands/mysql.svg" alt="" width="28" height="28"><span>MySQL</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Data investigation and structured SQL checks used during technical support workflows.</p></details>
+        <details class="cv-skill" data-skill-category="support systems"><summary><span class="cv-skill-icon"><i class="fa-solid fa-headset"></i></span><span>Contact-centre platforms</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>ConnexAI/CXM, CNX1, dialler management, queues, campaigns, extensions, recordings, and voice investigations.</p></details>
+        <details class="cv-skill" data-skill-category="systems support"><summary><img src="../assets/brands/linux.svg" alt="" width="28" height="28"><span>Linux / SSH</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Remote investigation, service checks, log-led troubleshooting, SFTP/WinSCP, and pm2 awareness.</p></details>
+        <details class="cv-skill" data-skill-category="integrations"><summary><img src="../assets/brands/json.svg" alt="" width="28" height="28"><span>JSON / JSONata</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Mapping, transformation checks, payload inspection, and integration troubleshooting.</p></details>
+        <details class="cv-skill" data-skill-category="integrations support"><summary><img src="../assets/brands/hubspot.svg" alt="" width="28" height="28"><span>HubSpot &amp; Power Automate</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Integration scenarios, endpoint checks, automation context, and clear escalation evidence.</p></details>
+        <details class="cv-skill" data-skill-category="support"><summary><img src="../assets/brands/zendesk.svg" alt="" width="28" height="28"><span>Zendesk &amp; ticket ownership</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Incident triage, stakeholder updates, evidence capture, documentation, and resolution ownership.</p></details>
+        <details class="cv-skill" data-skill-category="development"><summary><img src="../assets/brands/javascript.svg" alt="" width="28" height="28"><span>JavaScript</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Interactive web behaviour, debugging, and front-end implementation.</p></details>
+        <details class="cv-skill" data-skill-category="development"><summary><img src="../assets/brands/react.svg" alt="" width="28" height="28"><span>React</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Component-led interface development and structured front-end learning.</p></details>
+        <details class="cv-skill" data-skill-category="development"><summary><img src="../assets/brands/nodedotjs.svg" alt="" width="28" height="28"><span>Node.js</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Full-stack JavaScript foundations and server-side application concepts.</p></details>
+        <details class="cv-skill" data-skill-category="development data"><summary><img src="../assets/brands/mongodb.svg" alt="" width="28" height="28"><span>MongoDB</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Document data modelling and full-stack development foundations.</p></details>
+        <details class="cv-skill" data-skill-category="development"><summary><img src="../assets/brands/python.svg" alt="" width="28" height="28"><span>Python</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Programming fundamentals, automation thinking, and technical problem solving.</p></details>
+        <details class="cv-skill" data-skill-category="development"><summary><img src="../assets/brands/html5.svg" alt="" width="28" height="28"><span>HTML &amp; CSS</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><p>Responsive, accessible page structure and visual implementation.</p></details>
+      </div>
+    </section>
+
+    <section class="cv-section cv-education" id="cv-education" aria-labelledby="cv-education-title">
+      <div class="cv-section-heading"><p class="eyebrow">Education</p><h2 id="cv-education-title">Software foundations, applied practically.</h2></div>
+      <div class="cv-education-grid">
+        <article><div class="cv-education-meta"><span class="cv-education-logo"><img src="../images/UoB-Logo.png" alt="University of Bolton" width="715" height="402"></span><p class="eyebrow">2018&ndash;2022</p></div><div class="cv-education-copy"><h3>BSc (Hons)<br>Software Engineering</h3><p>The University of Bolton &middot; 2:1</p></div></article>
+        <article><div class="cv-education-meta"><span class="cv-education-logo"><img src="../images/tmc-logo.jpg" alt="The Manchester College" width="847" height="475"></span><p class="eyebrow">2014</p></div><div class="cv-education-copy"><h3>City &amp; Guilds Level 3</h3><p>ICT Systems and Principles &middot; Distinction</p></div></article>
+      </div>
+    </section>
+
+    <section class="cv-section cv-development" id="cv-development" aria-labelledby="cv-development-title">
+      <div class="cv-section-heading"><p class="eyebrow">Certifications &amp; development</p><h2 id="cv-development-title">Continuous learning across support and product work.</h2></div>
+      <div class="cv-development-list"><span>Introduction to Enterprise Computing</span><span>Leadership Foundations</span><span>React.js: Building an Interface</span><span>React: CSS Modules</span><span>Full-Stack JavaScript: MongoDB, Node and React</span><span>Current focus: UI/UX and platform operations</span></div>
+    </section>
+
+    <section class="cv-project-proof" aria-labelledby="cv-proof-title"><p class="eyebrow">Evidence in the portfolio</p><h2 id="cv-proof-title">See the work behind the claims.</h2><div><a href="../index.html#work">Akwaaba House <span>Hospitality experience &rarr;</span></a><a href="../index.html#work">GoldBar Fitness <span>Product ecosystem &rarr;</span></a><a href="../index.html#work">WealthWise <span>Fintech interface &rarr;</span></a></div></section>
+  </main>
+
+  <script src="../js/theme.js"></script>
+  <script src="../js/cv.js"></script>
+</body>
+</html>
+

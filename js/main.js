@@ -2,15 +2,12 @@
   'use strict';
 
 const root = document.documentElement;
-const THEME_KEY = 'leslie-theme-clean-v17';
 const SOUND_KEY = 'leslie-interface-sound';
 const isBrowserAudit = new URLSearchParams(window.location.search).has('browser-audit');
 
 const qs = (selector, scope = document) => scope.querySelector(selector);
 const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
-const themeToggle = qs('#theme-toggle');
-const themeColor = qs('meta[name="theme-color"]');
 const navToggle = qs('#nav-toggle');
 const navMenu = qs('#nav-menu');
 const uiStatus = qs('#ui-status');
@@ -484,29 +481,6 @@ function announce(message) {
   window.setTimeout(() => {
     uiStatus.textContent = message;
   }, 40);
-}
-
-function updateToggleStates() {
-  const theme = root.getAttribute('data-theme') || 'dark';
-  const lightThemeActive = theme === 'light';
-  themeToggle?.setAttribute('aria-pressed', String(lightThemeActive));
-  themeToggle?.setAttribute('aria-label', lightThemeActive ? 'Use dark theme' : 'Use light theme');
-}
-
-function setTheme(theme, { announceChange = true } = {}) {
-  root.setAttribute('data-theme', theme);
-  safeStorage.set(THEME_KEY, theme);
-  themeColor?.setAttribute('content', theme === 'light' ? '#ffffff' : '#080b10');
-
-  const icon = themeToggle?.querySelector('i');
-  if (icon) {
-    icon.className = theme === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-  }
-
-  updateToggleStates();
-  if (announceChange) {
-    announce(theme === 'light' ? 'Light theme enabled' : 'Dark theme enabled');
-  }
 }
 
 function showHeroSlide(index) {
@@ -1734,17 +1708,14 @@ function setupHeroPointerSpotlight() {
   heroSection.addEventListener('pointerleave', () => heroSection.classList.remove('is-pointer-active'));
   heroSection.addEventListener('pointermove', (event) => {
     const rect = heroSection.getBoundingClientRect();
-    const x = clamp((event.clientX - rect.left) / rect.width, 0, 1) * 100;
-    const y = clamp(event.clientY / window.innerHeight, 0, 1) * 100;
-    heroSection.style.setProperty('--hero-pointer-x', `${x}%`);
-    heroSection.style.setProperty('--hero-pointer-y', `${y}%`);
+    const x = clamp(event.clientX - rect.left, 0, rect.width);
+    const y = clamp(event.clientY - rect.top, 0, rect.height);
+    heroSection.style.setProperty('--hero-pointer-x', `${x}px`);
+    heroSection.style.setProperty('--hero-pointer-y', `${y}px`);
   }, { passive: true });
 }
 
 function init() {
-  const storedTheme = safeStorage.get(THEME_KEY, 'light');
-
-  setTheme(storedTheme, { announceChange: false });
   showHeroSlide(0);
   motionEnhanced = Boolean(window.PortfolioMotion?.init?.());
   if (!motionEnhanced) {
@@ -1765,10 +1736,6 @@ function init() {
 
   powerOffWorkspace({ restoreFocus: false, announceChange: false });
   handleScroll();
-
-  themeToggle?.addEventListener('click', () => {
-    setTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
-  });
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {

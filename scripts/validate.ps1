@@ -143,7 +143,7 @@ foreach ($entry in $expectedCaseCounts.GetEnumerator()) {
   }
 }
 
-$requiredNavLinks = @('#workspace', '#work', '#process', '#experience', '#contact')
+$requiredNavLinks = @('#workspace', '#work', '#experience', '#contact', 'pages/design-process.html', 'pages/cv.html')
 $indexHtml = Get-Content -LiteralPath (Join-Path $projectRoot 'index.html') -Raw -Encoding UTF8
 foreach ($href in $requiredNavLinks) {
   $pattern = '(?is)<a\b[^>]*href\s*=\s*(["''])' + [regex]::Escape($href) + '\1'

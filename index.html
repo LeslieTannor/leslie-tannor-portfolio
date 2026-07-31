@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Leslie Tannor is a UI/UX designer in progress and Enterprise Support Engineer creating clear, technically grounded digital experiences.">
   <meta name="theme-color" content="#ffffff">
-  <script>document.documentElement.classList.add('js-enabled');</script>
+  <script>document.documentElement.classList.add('js-enabled');try{document.documentElement.dataset.theme=localStorage.getItem('leslie-theme-clean-v17')==='dark'?'dark':'light'}catch{}</script>
   <title>Leslie Tannor | UI/UX Designer &amp; Enterprise Support Engineer</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
         </span>
         <span class="brand-copy">
           <strong>Leslie Tannor</strong>
-          <small>Design × technical systems</small>
+          <small>Design &times; technical systems</small>
         </span>
       </a>
 
@@ -38,8 +38,9 @@
         <span class="nav-active-pill" aria-hidden="true"></span>
         <a href="#work" data-nav="work">Projects</a>
         <a href="#workspace" data-nav="workspace">Work</a>
-        <a href="#process" data-nav="process">Process</a>
+        <a href="pages/design-process.html">Principles</a>
         <a href="#experience" data-nav="experience">Experience</a>
+        <a href="pages/cv.html">Career</a>
         <a href="#contact" data-nav="contact">Contact</a>
       </nav>
     </div>
@@ -55,7 +56,7 @@
     <section id="about" class="hero-section" aria-labelledby="about-heading" tabindex="-1">
       <div class="hero-bg" aria-hidden="true">
         <video class="hero-bg-video" autoplay muted loop playsinline preload="metadata">
-          <source src="media/blue-silk-hero.mp4" type="video/mp4">
+          <source src="media/pexels-hero.mp4" type="video/mp4">
         </video>
       </div>
       <div class="hero-shade" aria-hidden="true"></div>
@@ -63,7 +64,7 @@
       <div class="hero-sticky">
         <div class="container hero-shell">
           <div class="hero-copy reveal">
-            <p class="eyebrow">Design × systems × implementation</p>
+            <p class="eyebrow">Design &times; systems &times; implementation</p>
             <h1 id="about-heading"><span>Leslie</span> <span>Tannor.</span></h1>
             <p class="hero-subtitle">UI/UX designer in progress and Enterprise Support Engineer, bringing technical implementation experience to clear, considered digital products.</p>
             <div class="hero-role-list" role="list" aria-label="Professional focus">
@@ -75,6 +76,20 @@
               <a class="button button--primary" href="#work">Explore real work <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
               <a class="button button--quiet" href="#workspace">Open live websites <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
             </div>
+            <nav class="hero-socials" aria-label="Leslie Tannor social profiles">
+              <a href="https://www.instagram.com/les_nana_yaw?utm_source=qr" target="_blank" rel="noopener noreferrer" aria-label="Instagram — opens in a new tab" title="Instagram">
+                <img src="assets/brands/instagram.svg" alt="" width="22" height="22">
+              </a>
+              <a href="https://www.youtube.com/playlist?list=PLHOWTaJ-j0v4" target="_blank" rel="noopener noreferrer" aria-label="YouTube — opens in a new tab" title="YouTube">
+                <img src="assets/brands/youtube.svg" alt="" width="22" height="22">
+              </a>
+              <a href="https://github.com/LeslieTannor" target="_blank" rel="noopener noreferrer" aria-label="GitHub — opens in a new tab" title="GitHub">
+                <img src="assets/brands/github.svg" alt="" width="22" height="22">
+              </a>
+              <a href="https://www.linkedin.com/in/leslie-asamoah-tannor-863aa3a6" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn — opens in a new tab" title="LinkedIn">
+                <i class="fa-brands fa-linkedin-in" aria-hidden="true"></i>
+              </a>
+            </nav>
           </div>
 
           <div class="hero-device-wrap reveal" id="hero-device-wrap">
@@ -352,7 +367,7 @@
                     </div>
                     <p class="workspace-boot-kicker">Interactive device / Desktop</p>
                     <p class="workspace-boot-title">Live project browser</p>
-                    <p class="workspace-boot-help">Opening the interactive workspace…</p>
+                    <p class="workspace-boot-help">Opening the interactive workspace&hellip;</p>
                   </div>
                   <div class="workspace-lock" id="workspace-lock">
                     <div class="workspace-lock-content">
@@ -421,7 +436,7 @@
                           <div class="browser-overlay" id="browser-overlay" aria-live="polite">
                             <div class="browser-overlay-card">
                               <span class="browser-spinner" aria-hidden="true"></span>
-                              <strong id="browser-overlay-title">Loading live preview…</strong>
+                              <strong id="browser-overlay-title">Loading live preview&hellip;</strong>
                               <p id="browser-overlay-copy">If the preview takes too long or a site blocks embedding, use the button below to open the project directly.</p>
                               <a class="browser-link" id="browser-fallback-link" href="https://akwaabahouse.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Open the Akwaaba House live website in a new tab">Open project directly</a>
                             </div>
@@ -484,6 +499,7 @@
         <article class="experience-card"><span class="experience-label">Practical delivery</span><h3>Freelance Web Work</h3><p>I have already built websites for real audiences, which gives me practical perspective beyond purely visual design exercises.</p></article>
         <article class="experience-card"><span class="experience-label">Design direction</span><h3>Next Step</h3><p>This portfolio is now being shaped to position me more clearly for UI/UX and product design opportunities.</p></article>
       </div>
+      <a class="experience-cv-link" href="pages/cv.html"><span><small>Interactive career history</small><strong>Explore my CV</strong></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
       </div>
     </section>
 
@@ -527,21 +543,62 @@
         </div>
       </div>
     </section>
+
+    <div class="section-spacer" aria-hidden="true"></div>
+
+    <section class="social-section reveal" aria-labelledby="social-heading">
+      <div class="container social-shell">
+        <div class="section-head section-heading-panel"><p class="eyebrow">Elsewhere online</p><h2 id="social-heading">Follow the work beyond the portfolio.</h2><p>Design experiments, video collections, source code, and professional updates.</p></div>
+        <div class="social-grid">
+          <a class="social-card social-card--instagram" href="https://www.instagram.com/les_nana_yaw?utm_source=qr" target="_blank" rel="noopener noreferrer"><img src="assets/brands/instagram.svg" alt="" width="32" height="32"><span><small>Instagram</small><strong>@les_nana_yaw</strong></span><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+          <a class="social-card social-card--youtube" href="https://www.youtube.com/playlist?list=PLHOWTaJ-j0v4" target="_blank" rel="noopener noreferrer"><img src="assets/brands/youtube.svg" alt="" width="32" height="32"><span><small>YouTube</small><strong>Watch the playlist</strong></span><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+          <a class="social-card social-card--github" href="https://github.com/LeslieTannor" target="_blank" rel="noopener noreferrer"><img src="assets/brands/github.svg" alt="" width="32" height="32"><span><small>GitHub</small><strong>LeslieTannor</strong></span><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+          <a class="social-card social-card--linkedin" href="https://www.linkedin.com/in/leslie-asamoah-tannor-863aa3a6" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-linkedin-in social-card-logo" aria-hidden="true"></i><span><small>LinkedIn</small><strong>Professional profile</strong></span><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
     <div class="footer-art" aria-hidden="true">
       <img class="footer-art-image" src="background.png" alt="" width="2048" height="1152" loading="lazy">
     </div>
-    <div class="container footer-bar">
-      <div class="footer-left">
-        <p>&copy; 2026 Leslie Tannor</p>
-        <a href="pages/design-process.html">Design Process</a>
-        <a href="#contact">Contact</a>
+    <div class="container footer-shell">
+      <div class="footer-intro">
+        <a class="footer-brand" href="#about" aria-label="Leslie Tannor — back to the beginning">
+          <img src="logo.png" alt="" width="1254" height="1254">
+          <span><strong>Leslie Tannor</strong><small>Design &times; systems &times; implementation</small></span>
+        </a>
+        <p class="footer-availability"><i aria-hidden="true"></i> Available for thoughtful digital work</p>
       </div>
-      <div class="footer-right">
-        <a href="mailto:asamoah.leslie@gmail.com" aria-label="Email Leslie"><i class="fa-regular fa-envelope" aria-hidden="true"></i></a>
-        <a href="#about" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+      <div class="footer-cta">
+        <p class="eyebrow">One last thing</p>
+        <h2>Have something worth making clear?</h2>
+        <p>Bring the idea. I’ll bring considered design, technical thinking, and a practical route to something real.</p>
+        <a class="footer-email" href="mailto:asamoah.leslie@gmail.com">Start a conversation <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+      </div>
+      <div class="footer-directory">
+        <nav aria-label="Footer navigation">
+          <p>Explore</p>
+          <a href="#work">Projects</a>
+          <a href="#workspace">Live work</a>
+          <a href="pages/design-process.html">Principles</a>
+          <a href="pages/cv.html">Career</a>
+        </nav>
+        <nav aria-label="Social profiles">
+          <p>Connect</p>
+          <a href="https://www.linkedin.com/in/leslie-asamoah-tannor-863aa3a6" target="_blank" rel="noopener noreferrer">LinkedIn <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+          <a href="https://github.com/LeslieTannor" target="_blank" rel="noopener noreferrer">GitHub <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+          <a href="https://www.instagram.com/les_nana_yaw?utm_source=qr" target="_blank" rel="noopener noreferrer">Instagram <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+          <a href="https://www.youtube.com/playlist?list=PLHOWTaJ-j0v4" target="_blank" rel="noopener noreferrer">YouTube <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+        </nav>
+      </div>
+      <div class="footer-base">
+        <p>&copy; 2026 Leslie Tannor. Designed and built with intention.</p>
+        <div>
+          <span>Manchester, UK</span>
+          <a href="#about">Back to top <i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+        </div>
       </div>
     </div>
   </footer>
@@ -562,6 +619,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js" defer></script>
+  <script src="js/theme.js" defer></script>
   <script src="js/motion.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
