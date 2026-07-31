@@ -7,8 +7,6 @@ const skills = [...document.querySelectorAll('[data-skill-category]')];
 const roleCards = [...document.querySelectorAll('.cv-role-card')];
 const cvStats = [...document.querySelectorAll('[data-stat]')];
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const cvNavToggle = document.querySelector('#nav-toggle');
-const cvNavMenu = document.querySelector('#nav-menu');
 
 function announceCv(message) {
   if (!cvStatus) return;
@@ -17,18 +15,6 @@ function announceCv(message) {
 }
 
 printButton?.addEventListener('click', () => window.print());
-
-cvNavToggle?.addEventListener('click', () => {
-  const open = cvNavMenu?.classList.toggle('is-open') || false;
-  cvNavToggle.setAttribute('aria-expanded', String(open));
-  cvNavToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
-});
-
-cvNavMenu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
-  cvNavMenu.classList.remove('is-open');
-  cvNavToggle?.setAttribute('aria-expanded', 'false');
-  cvNavToggle?.setAttribute('aria-label', 'Open navigation');
-}));
 
 filterButtons.forEach((button) => {
   button.addEventListener('click', () => {

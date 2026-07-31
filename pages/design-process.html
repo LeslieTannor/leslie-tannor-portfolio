@@ -36,8 +36,9 @@
     </div>
   </header>
 
-  <div class="floating-tools" role="group" aria-label="Theme control">
+  <div class="floating-tools" role="group" aria-label="Display controls">
     <button id="theme-toggle" class="tool-btn" type="button" aria-label="Use dark theme" aria-pressed="false"><i class="fa-solid fa-moon" aria-hidden="true"></i></button>
+    <button class="tool-btn motion-toggle" type="button" aria-label="Pause background motion" aria-pressed="false"><i class="fa-solid fa-pause" aria-hidden="true"></i></button>
   </div>
 
   <main id="main-content" class="process-page-main" tabindex="-1">
@@ -93,6 +94,8 @@
     </section>
   </main>
   <script src="../js/theme.js"></script>
+  <script src="../js/background-motion.js"></script>
+  <script src="../js/standalone-navigation.js"></script>
   <script>
     (() => {
       const cards = [...document.querySelectorAll('.process-page-card')];
@@ -128,18 +131,6 @@
         }, { passive: true });
       });
 
-      const navToggle = document.querySelector('#nav-toggle');
-      const navMenu = document.querySelector('#nav-menu');
-      navToggle?.addEventListener('click', () => {
-        const open = navMenu?.classList.toggle('is-open') || false;
-        navToggle.setAttribute('aria-expanded', String(open));
-        navToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
-      });
-      navMenu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
-        navMenu.classList.remove('is-open');
-        navToggle?.setAttribute('aria-expanded', 'false');
-        navToggle?.setAttribute('aria-label', 'Open navigation');
-      }));
     })();
   </script>
 </body>

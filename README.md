@@ -4,7 +4,7 @@ A responsive, editorial portfolio for Leslie Tannor: a UI/UX designer in progres
 
 ## Architecture decision
 
-The redesign deliberately remains a static HTML, CSS, and JavaScript site. The product has one primary page, one small supporting page, no server state, no routing requirement, and a compact content model. Migrating it to React, Astro, Vite, or Next.js would add a build/runtime layer without solving a current product constraint.
+The redesign deliberately remains a static HTML, CSS, and JavaScript site. The product has one primary portfolio page plus dedicated Career and Principles pages, no server state, and no build-time routing requirement. Migrating it to React, Astro, Vite, or Next.js would add a build/runtime layer without solving a current product constraint.
 
 Motion is the one focused dependency:
 
@@ -44,7 +44,7 @@ Live destinations:
 
 The site includes semantic landmarks, logical headings, a skip link, visible focus, descriptive alternatives, protected external links, labelled form controls, associated validation errors, dialog and focus-return behavior, Escape-key support, and at least 44 px primary touch controls. Active navigation follows native scroll position; the heavier device and hero calculations are requestAnimationFrame-throttled.
 
-`prefers-reduced-motion: reduce` removes the sticky cinematic sequence, footer crossfade, looping ticker, transforms, and reveal delays. The ticker also has a persistent pause control for visitors who do not use the operating-system preference.
+`prefers-reduced-motion: reduce` removes the sticky cinematic sequence, looping ticker, background videos, transforms, and reveal delays. Background videos and the ticker also have persistent pause controls for visitors who do not use the operating-system preference.
 
 ## Local usage
 

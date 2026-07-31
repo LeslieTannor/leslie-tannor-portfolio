@@ -46,9 +46,12 @@
     </div>
   </header>
 
-  <div class="floating-tools" role="group" aria-label="Theme control">
+  <div class="floating-tools" role="group" aria-label="Display controls">
     <button id="theme-toggle" class="tool-btn" type="button" aria-label="Toggle theme" aria-pressed="false">
       <i class="fa-solid fa-moon"></i>
+    </button>
+    <button class="tool-btn motion-toggle" type="button" aria-label="Pause background motion" aria-pressed="false">
+      <i class="fa-solid fa-pause" aria-hidden="true"></i>
     </button>
   </div>
 
@@ -448,7 +451,7 @@
                             title="Live project preview"
                             src="about:blank"
                             loading="lazy"
-                            allow="fullscreen; clipboard-read; clipboard-write"
+                            allow="fullscreen"
                             referrerpolicy="strict-origin-when-cross-origin"
                           ></iframe>
                         </div>
@@ -477,7 +480,7 @@
 
     <div class="section-spacer" aria-hidden="true"></div>
 
-    <section id="process" class="process-section reveal" data-nav="process" aria-labelledby="process-heading" tabindex="-1">
+    <section id="process" class="process-section reveal" aria-labelledby="process-heading" tabindex="-1">
       <div class="container process-shell">
       <div class="section-head section-heading-panel"><p class="eyebrow">Working principles</p><h2 id="process-heading">A calm process for complex digital problems.</h2><p>I connect visual decisions to interaction, implementation, and the person using the product.</p></div>
       <div class="process-grid">
@@ -620,6 +623,7 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js" defer></script>
   <script src="js/theme.js" defer></script>
+  <script src="js/background-motion.js" defer></script>
   <script src="js/motion.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>

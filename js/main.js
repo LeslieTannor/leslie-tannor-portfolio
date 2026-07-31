@@ -28,7 +28,11 @@ const heroSlides = qsa('.hero-slide');
 const heroDots = qsa('.hero-dot');
 
 const revealItems = qsa('.reveal');
-const navSections = qsa('main section[data-nav]');
+// Only observe sections that have a matching in-page navigation item. External
+// page links (Career and Principles) must never be treated as CSS selectors.
+const navSections = qsa('main section[data-nav]').filter((section) =>
+  Boolean(qs(`.nav-menu a[href="#${section.id}"]`))
+);
 const navLinks = qsa('.nav-menu a[href^="#"]');
 const navActivePill = qs('.nav-active-pill');
 let navSelectionLock = null;
@@ -1535,15 +1539,18 @@ function setupMobileNav() {
   navMenu.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', (event) => {
       closeMenu();
-      const target = qs(link.getAttribute('href'));
+      const href = link.getAttribute('href');
+      if (!href?.startsWith('#')) return;
+
+      const target = qs(href);
       if (!target) return;
 
       event.preventDefault();
-      const targetNavKey = link.dataset.nav || link.getAttribute('href').replace('#', '');
+      const targetNavKey = link.dataset.nav || href.slice(1);
       navSelectionLock = targetNavKey;
       window.clearTimeout(navSelectionTimer);
       setActiveNav(targetNavKey);
-      window.history.replaceState(null, '', link.getAttribute('href'));
+      window.history.replaceState(null, '', href);
       window.scrollTo({
         top: Math.max(0, target.offsetTop + 32),
         behavior: reducedMotionQuery.matches ? 'auto' : 'smooth'

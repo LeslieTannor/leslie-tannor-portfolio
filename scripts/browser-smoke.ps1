@@ -159,6 +159,8 @@ try {
     '--no-first-run',
     '--disable-default-apps',
     '--disable-background-networking',
+    '--disable-gpu',
+    '--disable-gpu-shader-disk-cache',
     '--allow-file-access-from-files',
     'about:blank'
   )
@@ -328,7 +330,7 @@ try {
   Assert-Audit ($structure.blankRelIssues -eq 0) 'Rendered target=_blank links are missing rel protections.'
   Assert-Audit (@($structure.localSheetRules).Count -eq 1 -and $structure.localSheetRules[0] -gt 0) 'The local stylesheet did not parse into CSS rules.'
   Assert-Audit ([bool]$structure.initialCaseHidden) 'Case-study detail is visible before a project is selected.'
-  Assert-Audit ($structure.footerArtCount -eq 2 -and $structure.themeControlCount -eq 1) 'Footer art or the single theme control is incorrect.'
+  Assert-Audit ($structure.footerArtCount -eq 2 -and $structure.themeControlCount -eq 2) 'Footer art or display controls are incorrect.'
   Assert-Audit ($structure.showcaseAutoplayCount -eq 1) 'The automatic project gallery pause/resume control is missing.'
   Assert-Audit ($structure.defaultTheme -eq 'light' -and $structure.bodyBackground -eq 'rgb(255, 255, 255)') 'The portfolio does not open on the requested white Apple-style canvas.'
   Assert-Audit ($structure.heroBackground -eq 'rgb(245, 245, 247)' -and $structure.transitionBackground -eq 'rgb(245, 245, 247)') 'The hero and real-projects narrative do not share the requested Apple neutral-grey band.'
@@ -442,7 +444,7 @@ try {
 (async () => {
   document.documentElement.style.scrollBehavior = 'auto';
   document.activeElement?.blur();
-  const tests = [['work','work'], ['workspace','workspace'], ['process','process'], ['experience','experience'], ['contact','contact']];
+  const tests = [['work','work'], ['workspace','workspace'], ['experience','experience'], ['contact','contact']];
   const states = [];
   const activeKeys = () => [...document.querySelectorAll('#nav-menu .is-active')].map(link => link.dataset.nav);
   const currentKeys = () => [...document.querySelectorAll('#nav-menu [aria-current="location"]')].map(link => link.dataset.nav);
@@ -788,6 +790,7 @@ try {
     marqueeAnimation:getComputedStyle(document.querySelector('.marquee-track')).animationName,
     duplicateTickerDisplay:getComputedStyle(document.querySelector('.marquee-group[aria-hidden="true"]')).display,
     showcaseAutoplayPressed:document.querySelector('#showcase-autoplay').getAttribute('aria-pressed'),
+    backgroundVideoPaused:document.querySelector('.hero-bg-video').paused,
     hiddenReveals:[...document.querySelectorAll('.reveal')].filter(element => Number(getComputedStyle(element).opacity) < .99).length,
     workspaceInitialHeight:stage.getBoundingClientRect().height,
     workspaceInitialHidden:device.getAttribute('aria-hidden')
@@ -802,6 +805,7 @@ try {
   Assert-Audit ($reducedMotion.matches -and $reducedMotion.heroStickyPosition -eq 'relative') 'Reduced-motion preference did not disable the sticky cinematic hero.'
   Assert-Audit ($reducedMotion.footerArtAnimation -eq 'none' -and $reducedMotion.alternateFooterArtDisplay -eq 'none' -and $reducedMotion.marqueeAnimation -eq 'none' -and $reducedMotion.duplicateTickerDisplay -eq 'none') 'Reduced-motion preference left decorative or looping motion active.'
   Assert-Audit ($reducedMotion.showcaseAutoplayPressed -eq 'true') 'Reduced-motion preference did not pause the automatic project gallery.'
+  Assert-Audit ($reducedMotion.backgroundVideoPaused) 'Reduced-motion preference did not pause the decorative hero video.'
   Assert-Audit ($reducedMotion.workspaceInitialHeight -eq 0 -and $reducedMotion.workspaceInitialHidden -eq 'true' -and $reducedMotion.workspaceRevealed) 'Reduced-motion mode exposes an empty laptop stage or prevents the explicit reveal.'
   Assert-Audit ($reducedMotion.hiddenReveals -eq 0 -and @($reducedMotion.errors).Count -eq 0) 'Reduced-motion mode hides content or emitted a runtime error.'
   [void](Invoke-Cdp -Method 'Emulation.setEmulatedMedia' -Params @{ features = @(@{ name = 'prefers-reduced-motion'; value = 'no-preference' }) })
@@ -831,15 +835,39 @@ try {
   h1:document.querySelector('h1')?.textContent.trim(),
   scrollWidth:document.documentElement.scrollWidth,
   clientWidth:document.documentElement.clientWidth,
-  backHref:document.querySelector('.process-page-back')?.getAttribute('href'),
+  returnHref:document.querySelector('.process-page-return-link')?.getAttribute('href'),
+  motionControlCount:document.querySelectorAll('.motion-toggle').length,
   errors:window.__portfolioAuditErrors || []
 }))()
 '@
     Assert-Audit ($designPage.title -eq 'Design Process | Leslie Tannor' -and -not [string]::IsNullOrWhiteSpace($designPage.h1)) "$($designViewport.Width) px design-process page has invalid title or heading."
     Assert-Audit ($designPage.scrollWidth -le ($designPage.clientWidth + 1)) "$($designViewport.Width) px design-process page has horizontal overflow."
-    Assert-Audit ($designPage.backHref -eq '../index.html#process') 'Design-process back link is incorrect.'
+    Assert-Audit ($designPage.returnHref -eq '../index.html#work') 'Design-process return link is incorrect.'
+    Assert-Audit ($designPage.motionControlCount -eq 1) 'Design-process page is missing its background-motion control.'
     Assert-Audit (@($designPage.errors).Count -eq 0) "$($designViewport.Width) px design-process page reported JavaScript errors."
     Save-CurrentScreenshot -Name "design-process-$($designViewport.Width)"
+  }
+
+  $cvPageUrl = ([uri](Join-Path $projectRoot 'pages\cv.html')).AbsoluteUri
+  foreach ($cvViewport in @(@{Width=320;Height=700}, @{Width=1440;Height=900})) {
+    Write-Host "Checking CV page at $($cvViewport.Width) px..."
+    Set-ViewportAndLoad -Width $cvViewport.Width -Height $cvViewport.Height -Url $cvPageUrl
+    $cvPage = Invoke-PageScript -Expression @'
+(() => ({
+  title:document.title,
+  h1:document.querySelector('h1')?.textContent.trim(),
+  scrollWidth:document.documentElement.scrollWidth,
+  clientWidth:document.documentElement.clientWidth,
+  navHrefs:[...document.querySelectorAll('#nav-menu a')].map(link => link.getAttribute('href')),
+  themeControlCount:document.querySelectorAll('#theme-toggle').length,
+  errors:window.__portfolioAuditErrors || []
+}))()
+'@
+    Assert-Audit ($cvPage.title -eq 'Interactive CV | Leslie Tannor' -and -not [string]::IsNullOrWhiteSpace($cvPage.h1)) "$($cvViewport.Width) px CV page has invalid title or heading."
+    Assert-Audit ($cvPage.scrollWidth -le ($cvPage.clientWidth + 1)) "$($cvViewport.Width) px CV page has horizontal overflow."
+    Assert-Audit (@($cvPage.navHrefs).Count -eq 2 -and $cvPage.themeControlCount -eq 1) "$($cvViewport.Width) px CV page navigation or theme control is incomplete."
+    Assert-Audit (@($cvPage.errors).Count -eq 0) "$($cvViewport.Width) px CV page reported JavaScript errors."
+    Save-CurrentScreenshot -Name "cv-$($cvViewport.Width)"
   }
 
   $runtimeExceptions = @($script:events | Where-Object { $_.method -eq 'Runtime.exceptionThrown' })
